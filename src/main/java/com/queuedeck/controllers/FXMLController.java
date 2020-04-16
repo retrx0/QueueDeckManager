@@ -898,7 +898,7 @@ public class FXMLController implements Initializable {
                     return new Pair<>(hourSpinner.getValue().toString(),minuteSpinner.getValue().toString());
                 }
                 if(dialogButton == ButtonType.CANCEL){
-                    
+                    //
                 }
                 return null;
             });
