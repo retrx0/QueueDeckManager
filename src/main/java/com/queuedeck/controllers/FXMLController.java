@@ -898,12 +898,14 @@ public class FXMLController implements Initializable {
                     return new Pair<>(hourSpinner.getValue().toString(),minuteSpinner.getValue().toString());
                 }
                 if(dialogButton == ButtonType.CANCEL){
+                    
                 }
                 return null;
             });
 
         Optional<Pair<String, String>> result = dialog.showAndWait();
-        System.out.println(result.get().getKey()+":"+result.get().getValue()+":"+"00");
+        if(result.isPresent())
+            System.out.println(result.get().getKey()+":"+result.get().getValue()+":"+"00");
             return result;
     }
 //</editor-fold>
