@@ -22,7 +22,7 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane id="AnchorPane" fx:id="containerPane" prefHeight="389.0" prefWidth="600.0" style="-fx-background-color: #2E315B;" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.qdeck.FXMLController">
+<AnchorPane id="AnchorPane" fx:id="containerPane" prefHeight="389.0" prefWidth="600.0" style="-fx-background-color: #2E315B;" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.queuedeck.controllers.FXMLController">
    <children>
       <StackPane fx:id="cardsStackPane" layoutX="-4.0" prefHeight="389.0" prefWidth="615.0" AnchorPane.bottomAnchor="23.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <children>
