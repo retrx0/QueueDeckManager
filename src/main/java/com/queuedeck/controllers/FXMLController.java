@@ -807,25 +807,36 @@ public class FXMLController implements Initializable {
             }
         }catch(Exception ex){}
     }
+    public String changeStringFormat(String stringToChange){
+        if(stringToChange.length() == 1){
+            return "0"+stringToChange;
+        }else
+            return stringToChange;
+    }
     public void lockButtonPerformAction(ToggleButton lockTbtn, String service_no){
     try{
-            Connection con = pool.getConnection();
-            Statement stmt =con.createStatement();
-            PreparedStatement ps = con.prepareStatement("select locked,staff_no from services where s_no = '"+service_no+"'");
-            ResultSet rst =ps.executeQuery();
+        Connection con = pool.getConnection();
+        Statement stmt =con.createStatement();
+        PreparedStatement ps = con.prepareStatement("select locked,staff_no from services where s_no = '"+service_no+"'");
+        ResultSet rst =ps.executeQuery();
+        Optional<Pair<String,String>> lock_result = showLockTimeSpinner(lockTbtn);
+        String unlock_time = null;
+            if(lock_result.isPresent()){
+                if(LocalTime.parse(changeStringFormat(lock_result.get().getKey())+":"+changeStringFormat(lock_result.get().getValue())+":"+"00").isBefore(LocalTime.now())){
+                    createAlert(AlertType.ERROR, "Error", "Time is after current time", "Could not lock service");lockTbtn.setSelected(false);}
+                else unlock_time = lock_result.get().getKey()+":"+lock_result.get().getValue()+":"+"00";
+            }
             while(rst.next()){
                 String staff_id = rst.getString("staff_no");
                 if(lockTbtn.isSelected()){
                     if(rst.getString("locked").equals("0")){
                         lockTbtn.setText("Unlock");
-                        showLockTimeSpinner();
-                        stmt.executeUpdate("update services set locked = '1', staff_no = '"+staffNoTextField.getText()+"' where s_no = '"+service_no+"'");
+                        stmt.executeUpdate("update services set locked = '1', staff_no = '"+staffNoTextField.getText()+"', unlock_time = '"+unlock_time+"' where s_no = '"+service_no+"'");
                     }
                     else{createAlert(AlertType.WARNING, "Queue Locked", "Queue was already locked by "+ staff_id +"!", "Queue is already locked"); }
                 }
-                else{lockTbtn.setText("Lock");stmt.executeUpdate("update services set locked = '0', staff_no = '"+staffNoTextField.getText()+"' where s_no = '"+service_no+"'");}
+                else{lockTbtn.setText("Lock");stmt.executeUpdate("update services set locked = '0', unlock_time = null where s_no = '"+service_no+"'");}
             }
-
         pool.releaseConnection(con);
     }
         catch(SQLException e){}
@@ -866,14 +877,12 @@ public class FXMLController implements Initializable {
        sp.getChildren().clear();
        sp.getChildren().add(nodeToShow);
     }
-    Optional<Pair<String, String>> showLockTimeSpinner(){
-        
+    Optional<Pair<String, String>> showLockTimeSpinner(ToggleButton lockbtn){
         Dialog<Pair<String, String>> dialog = new Dialog<>();
         dialog.setTitle("Lock Service");
         dialog.setHeaderText("Set time to unlock service");
         ButtonType lock = new ButtonType("Lock", ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(lock, ButtonType.CANCEL);
-        
         dialog.getDialogPane().setPrefSize(220, 180);
 
         GridPane grid = new GridPane();
@@ -890,22 +899,18 @@ public class FXMLController implements Initializable {
         grid.add(minuteLabel, 1, 0);
         grid.add(hourSpinner, 0, 1);
         grid.add(minuteSpinner, 1, 1);
-        
         dialog.getDialogPane().setContent(grid);
-
             dialog.setResultConverter(dialogButton -> {
                 if (dialogButton == lock){ 
+                    lockbtn.setSelected(true);
                     return new Pair<>(hourSpinner.getValue().toString(),minuteSpinner.getValue().toString());
                 }
                 if(dialogButton == ButtonType.CANCEL){
-                    //
+                    lockbtn.setSelected(false);
                 }
                 return null;
             });
-
-        Optional<Pair<String, String>> result = dialog.showAndWait();
-        if(result.isPresent())
-            System.out.println(result.get().getKey()+":"+result.get().getValue()+":"+"00");
+            Optional<Pair<String, String>> result = dialog.showAndWait();
             return result;
     }
 //</editor-fold>
@@ -1493,6 +1498,8 @@ public class FXMLController implements Initializable {
     }
 //</editor-fold>
     
+    int oCurrentNotif;
+    boolean showNotifAgain = false;
     @Override
     public void initialize(URL Url, ResourceBundle rb) {
         loginCombo.getItems().clear();
@@ -1501,13 +1508,74 @@ public class FXMLController implements Initializable {
         showNode(cardsStackPane, loginNode);
         Preferences prefs = Preferences.userNodeForPackage(getClass());
         staffNoTextField.setText(prefs.get("Staff No", ""));
+        
         Task task = new Task() {
             @Override
             protected Object call() throws Exception {
                 Connection con2 = pool.getConnection();
                 while(true){
                     Platform.runLater(() -> {
-                        try {
+                    try {
+                        Statement stmt = con2.createStatement();
+                            String local_time = String.valueOf(LocalTime.now().getHour()) + ":" + String.valueOf(LocalTime.now().getMinute()) + ":" + "00" ;
+                            PreparedStatement ps = con2.prepareStatement("select s_no, unlock_time from services");
+                            ResultSet rst = ps.executeQuery();
+                            while(rst.next()){
+                                String sno = rst.getString("s_no");
+                                String time = rst.getString("unlock_time");
+                                if(sno.equals(currentCusTag)){
+                                    if(time!= null){
+                                        if(time.equals(local_time)){
+                                            currentCusLockBtn.setSelected(false);
+                                            currentCusLockBtn.setText("Lock");
+                                            stmt.executeUpdate("update services set locked = '0', unlock_time = null where s_no = '"+sno+"'");
+                                        }
+                                    }
+                                    else{
+                                        currentCusLockBtn.setSelected(false);
+                                        currentCusLockBtn.setText("Lock");
+                                    }
+                                }
+                                else if(sno.equals(newCusTag)){
+                                    if(time!= null){
+                                        if(time.equals(local_time)){
+                                            newCusLockBtn.setSelected(false);
+                                            newCusLockBtn.setText("Lock");
+                                            stmt.executeUpdate("update services set locked = '0', unlock_time = null where s_no = '"+sno+"'");
+                                        }
+                                    }
+                                    else{
+                                        newCusLockBtn.setSelected(false);
+                                        newCusLockBtn.setText("Lock");
+                                    }
+                                }
+                                else if(sno.equals(serviceTag)){
+                                    if(time!= null){
+                                        if(time.equals(local_time)){
+                                            servicesLockBtn.setSelected(false);
+                                            servicesLockBtn.setText("Lock");
+                                            stmt.executeUpdate("update services set locked = '0', unlock_time = null where s_no = '"+sno+"'");
+                                        }
+                                    }
+                                    else{
+                                        servicesLockBtn.setSelected(false);
+                                        servicesLockBtn.setText("Lock");
+                                    }
+                                }
+                                else if(sno.equals(othersTag)){
+                                    if(time!= null){
+                                        if(time.equals(local_time)){
+                                            otherLockBtn.setSelected(true);
+                                            otherLockBtn.setText("Lock");
+                                            stmt.executeUpdate("update services set locked = '0', unlock_time = null where s_no = '"+sno+"'");
+                                        }
+                                    }
+                                    else{
+                                        otherLockBtn.setSelected(true);
+                                        otherLockBtn.setText("Lock");
+                                    }
+                                }
+                            }
                             if(loginCombo.getSelectionModel().getSelectedItem() != null){
                             String cbv =loginCombo.getSelectionModel().getSelectedItem();
                             switch(cbv){
@@ -1532,6 +1600,11 @@ public class FXMLController implements Initializable {
                                         createAlertWhenThereIsATkt();
                                         showNewTicketAlert = false;
                                     }
+                                 if(notifCount > 0){
+                                     oCurrentNotif = notifCount;
+                                     showNotifAgain = false;
+                                 }
+                                 if(notifCount < 1 && oCurrentNotif == 1 && !showNotifAgain){createAlertWhenThereIsATkt(); showNotifAgain = true;}
                                 PreparedStatement countTrans4 = con2.prepareStatement("select sum(case when time_called IS NULL and trans_to = '"+othersTag+"' then 1 else 0 end) as count_num_trans from transfer where t_date='"+local_date+"'");
                                 ResultSet rst2 =countTrans4.executeQuery();
                                 while(rst2.next()){
@@ -1624,6 +1697,5 @@ public class FXMLController implements Initializable {
             }
         };
         new Thread(task).start();
-        
     }
 }

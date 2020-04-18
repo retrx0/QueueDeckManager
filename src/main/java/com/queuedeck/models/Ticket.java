@@ -59,6 +59,6 @@ public class Ticket {
 
                 @Override
                 public String toString() {
-                        return tag +"@"+ ticketNo + "@" +changeTimeStampformat() + "\n";
+                        return tag + ticketNo;
                 }
 }
