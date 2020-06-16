@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.queuedeck.transitions;
+package com.queuedeck.effects;
 
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -12,14 +12,17 @@ import javafx.scene.Node;
 import javafx.util.Duration;
 
 /**
- * Animate a fade out up big effect on a node
+ * Animate a bounce out up big effect on a node
  * 
- * Port of FadeOutUpBig from Animate.css http://daneden.me/animate by Dan Eden
+ * Port of BounceOutUpBig from Animate.css http://daneden.me/animate by Dan Eden
  * 
- * {@literal @}keyframes fadeOutUpBig {
+ * {@literal @}bounceOutUp {
  * 	0% {
- * 		opacity: 1;
  * 		transform: translateY(0);
+ * 	}
+ * 	20% {
+ * 		opacity: 1;
+ * 		transform: translateY(20px);
  * 	}
  * 	100% {
  * 		opacity: 0;
@@ -31,27 +34,30 @@ import javafx.util.Duration;
  *
  * @author ABDULRAHMAN ILLO
  */
-public class FadeOutUpBigTransition extends CachedTimelineTransition{
+public class BounceOutUpTransition extends CachedTimelineTransition{
     /**
-     * Create new FadeOutUpBigTransition
+     * Create new BounceOutUpTransition
      * 
      * @param node The node to affect
      */
-    public FadeOutUpBigTransition(final Node node) {
+    public BounceOutUpTransition(final Node node) {
         super(node, null);
         setCycleDuration(Duration.seconds(1));
-        setDelay(Duration.seconds(0.2));
+        setDelay(Duration.seconds(0));
     }
 
     @Override protected void starting() {
         double endY = -node.localToScene(0, 0).getY() -node.getBoundsInParent().getHeight();
         timeline = new Timeline(
                     new KeyFrame(Duration.millis(0),    
-                        new KeyValue(node.opacityProperty(), 1, WEB_EASE),
                         new KeyValue(node.translateYProperty(), 0, WEB_EASE)
                     ),
+                    new KeyFrame(Duration.millis(200),    
+                        new KeyValue(node.opacityProperty(), 1, WEB_EASE),
+                        new KeyValue(node.translateYProperty(), 20, WEB_EASE)
+                    ),
                     new KeyFrame(Duration.millis(1000),    
-                        new KeyValue(node.opacityProperty(), 0, WEB_EASE),
+                        new KeyValue(node.opacityProperty(), 1, WEB_EASE),
                         new KeyValue(node.translateYProperty(), endY, WEB_EASE)
                     )
                 );

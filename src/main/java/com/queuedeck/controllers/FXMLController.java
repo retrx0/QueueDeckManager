@@ -68,11 +68,11 @@ import javafx.scene.paint.Color;
 import javafx.util.Duration;
 import javafx.util.Pair;
 import com.queuedeck.pool.BasicConnectionPool;
-import com.queuedeck.transitions.FadeOutUpBigTransition;
-import com.queuedeck.transitions.FlashTransition;
-import com.queuedeck.transitions.ShakeTransition;
+import com.queuedeck.effects.FadeOutUpBigTransition;
+import com.queuedeck.effects.FlashTransition;
+import com.queuedeck.effects.ShakeTransition;
 import com.queuedeck.models.Ticket;
-import com.queuedeck.transitions.FadeInDownTransition;
+import com.queuedeck.effects.FadeInDownTransition;
 
 public class FXMLController implements Initializable {
     
