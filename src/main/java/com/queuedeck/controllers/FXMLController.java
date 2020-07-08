@@ -1,6 +1,5 @@
 package com.queuedeck.controllers;
 
-import java.io.File;
 import java.net.URL;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -43,7 +42,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
-import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
@@ -68,11 +66,11 @@ import javafx.scene.paint.Color;
 import javafx.util.Duration;
 import javafx.util.Pair;
 import com.queuedeck.pool.BasicConnectionPool;
-import com.queuedeck.effects.FadeOutUpBigTransition;
 import com.queuedeck.effects.FlashTransition;
 import com.queuedeck.effects.ShakeTransition;
 import com.queuedeck.models.Ticket;
 import com.queuedeck.effects.FadeInDownTransition;
+import com.queuedeck.models.ControlView;
 
 public class FXMLController implements Initializable {
     
@@ -649,7 +647,7 @@ public class FXMLController implements Initializable {
                                 if(cbv != null){
                                     if(cbv.equals(services)){
                                         doFadeinDown(cardsStackPane, menuBar);
-                                        doFadeInUpTransition(cardsStackPane, node);
+                                        doFadeInUpTransition(cardsStackPane, new ControlView("test"));
                                         //menuBar.setVisible(true);
                                         //doSlideInFromTop(cardsStackPane, node);
                                         item.setDisable(true);
@@ -1499,7 +1497,8 @@ public class FXMLController implements Initializable {
 //</editor-fold>
     
     int oCurrentNotif;
-    boolean showNotifAgain = false;
+    boolean flag1 = false;
+    boolean flag2 = false;
     @Override
     public void initialize(URL Url, ResourceBundle rb) {
         loginCombo.getItems().clear();
@@ -1597,15 +1596,14 @@ public class FXMLController implements Initializable {
                                         otherNoInline.setText(""+ppline);
                                 }
                                 int notifCount = ppline+pplineb;
-                                 if(notifCount == 1 && showNewTicketAlert){
-                                        createAlertWhenThereIsATkt();
-                                        showNewTicketAlert = false;
-                                    }
-                                 if(notifCount > 0){
-                                     oCurrentNotif = notifCount;
-                                     showNotifAgain = false;
+                                 if(notifCount>0)
+                                        flag1 = true;
+                                 if(notifCount == 0 && flag1){
+                                     flag2 = true;
+                                     createAlertWhenThereIsATkt();
                                  }
-                                 if(notifCount < 1 && oCurrentNotif == 1 && !showNotifAgain){createAlertWhenThereIsATkt(); showNotifAgain = true;}
+                                 if(flag1 && flag2)
+                                     flag1 = false; flag2 = false;
                                 PreparedStatement countTrans4 = con2.prepareStatement("select sum(case when time_called IS NULL and trans_to = '"+othersTag+"' then 1 else 0 end) as count_num_trans from transfer where t_date='"+local_date+"'");
                                 ResultSet rst2 =countTrans4.executeQuery();
                                 while(rst2.next()){
