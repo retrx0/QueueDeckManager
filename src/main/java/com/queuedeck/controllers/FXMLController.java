@@ -1584,18 +1584,19 @@ public class FXMLController implements Initializable {
                                 //Connection con2 = connectionPool.getConnection();
                                 ResultSet rs5 = con2.prepareStatement("select sum(case when time_called IS NULL and tag = '"+othersTag+"' then 1 else 0 end) as count_num from tickets where t_date='"+local_date+"'").executeQuery();
                                 ResultSet rs5b = con2.prepareStatement("select sum(case when time_called IS NULL and trans_to = '"+othersTag+"' then 1 else 0 end) as count_num from transfer where t_date='"+local_date+"'").executeQuery();
-                                String ppline = null;String pplineb = null;
+                                int ppline = 0;int pplineb = 0;
                                 while(rs5.next() && rs5b.next()){
-                                    ppline = rs5.getString("count_num");
-                                    pplineb = rs5b.getString("count_num");
-                                    if(ppline == null){
-                                        ppline = String.valueOf(0);otherNoInline.setText(ppline);
+                                    ppline = rs5.getInt("count_num");
+                                    pplineb = rs5b.getInt("count_num");
+                                    if(""+ppline == null){
+                                        ppline = 0;
+                                        otherNoInline.setText(""+ppline);
                                     }
-                                    else if(pplineb == null){pplineb = String.valueOf(0);}
-                                    else if(pplineb != null){ppline =String.valueOf(Integer.valueOf(ppline) + Integer.valueOf(pplineb));}
-                                        otherNoInline.setText(ppline);
+                                    else if(""+pplineb == null){pplineb = 0;}
+                                    else if(""+pplineb != null){ppline =(ppline + pplineb);}
+                                        otherNoInline.setText(""+ppline);
                                 }
-                                int notifCount = Integer.valueOf(ppline)+Integer.valueOf(pplineb);
+                                int notifCount = ppline+pplineb;
                                  if(notifCount == 1 && showNewTicketAlert){
                                         createAlertWhenThereIsATkt();
                                         showNewTicketAlert = false;
@@ -1611,7 +1612,7 @@ public class FXMLController implements Initializable {
                                     String noTrans = rst2.getString("count_num_trans");
                                     otherTranferNoLabel.setText(noTrans);
                                     }
-                                }catch(NumberFormatException | SQLException e){System.err.print(e);}
+                                }catch(NumberFormatException | SQLException e){e.printStackTrace();}
                                 break;
                             case "Current Customer":
                                 try{
