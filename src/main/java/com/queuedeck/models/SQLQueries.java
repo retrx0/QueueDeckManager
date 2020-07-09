@@ -11,6 +11,7 @@ package com.queuedeck.models;
  */
 public interface SQLQueries {
     
-    
+    public void lockTicket(String staffNo, String tag);
+    public void getTicket(String staffNo, String tag);
     
 }

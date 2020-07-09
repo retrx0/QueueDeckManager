@@ -4,6 +4,7 @@ import com.queuedeck.controllers.FXMLController;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.prefs.Preferences;
 import javafx.application.Application;
 import static javafx.application.Application.launch;
 import javafx.fxml.FXMLLoader;
@@ -19,7 +20,7 @@ public class MainApp extends Application {
         Parent root = FXMLLoader.load(getClass().getResource("/fxml/QDMangerScene.fxml"));
         Scene scene = new Scene(root);
         scene.getStylesheets().add("/styles/Style-Default.css");
-          
+        
         stage.setTitle("Queue Deck Manager");
         stage.setScene(scene);
         stage.setResizable(false);
@@ -32,14 +33,6 @@ public class MainApp extends Application {
     @Override
     public void stop() throws Exception {
         System.out.println("stage closing");
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/QDMangerScene.fxml"));
-        try{
-                loader.load();
-                FXMLController controllerClass = (FXMLController)loader.getController();
-                controllerClass.close();
-            } catch (IOException ex) {
-                Logger.getLogger(MainApp.class.getName()).log(Level.SEVERE, null, ex);
-                } 
         super.stop(); 
     }
         

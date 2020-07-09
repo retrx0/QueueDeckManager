@@ -16,6 +16,7 @@ import javafx.scene.control.ToggleButton;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Paint;
 import javafx.scene.text.Font;
@@ -97,15 +98,21 @@ public class ControlView extends AnchorPane{
         ticketIcon.setSmooth(true);
         ticketIcon.setFitHeight(160);
         ticketIcon.setFitWidth(200);
+        ticketIcon.setLayoutX(420);
+        ticketIcon.setLayoutY(50);
         
-        currentlySerVingLabel.setLayoutX(400);
-        currentlySerVingLabel.setLayoutY(70);
-        System.out.println(ticketIcon.getLayoutX()+"-"+ticketIcon.getLayoutY());
+        currentlySerVingLabel.setLayoutX(420);
+        currentlySerVingLabel.setLayoutY(50);
         currentlySerVingLabel.setTextAlignment(TextAlignment.CENTER);
         currentlySerVingLabel.setFont(Font.font("sans serif", 50));
         serviceName.setTextAlignment(TextAlignment.CENTER);
-        serviceName.setFont(new Font(20));
+        serviceName.setFont(new Font(40));
         serviceName.setTextFill(Paint.valueOf("white"));
+        noInlineLabel.setAlignment(Pos.CENTER);
+        serviceName.setAlignment(Pos.CENTER);
+        allLabel.setAlignment(Pos.CENTER);
+        missedLabel.setAlignment(Pos.CENTER);
+        transLabel.setAlignment(Pos.CENTER);
         
 //        Menu optionsMenu = new Menu("Options",null,changePassword,ChangeCounter,Stats,logout);
 //        Menu changeServiceMenu = new Menu("Change Service");
@@ -115,6 +122,7 @@ public class ControlView extends AnchorPane{
         
         CheckBox autoCB= new CheckBox("Auto Call Transfered");
         autoCB.setTextFill(Paint.valueOf("white"));
+        autoCB.setAlignment(Pos.CENTER);
         
         ListView lv = new ListView();
         lv.setPrefSize(165, 95);
@@ -132,11 +140,24 @@ public class ControlView extends AnchorPane{
         svb1.setAlignment(Pos.CENTER);
         svb2.setAlignment(Pos.CENTER);
         svb3.setAlignment(Pos.CENTER); 
-        HBox hb2 = new HBox(10, svb1,svb2,svb3,ticketIcon);
+        HBox hb2 = new HBox(10, svb1,svb2,svb3);
         
         HBox hb3 = new HBox(10,noShow,next,transfer,done);
         HBox hb4 = new HBox(10, callMissed,callAgain,callTrans,lock);
         VBox vb1 = new VBox(10, hb3,hb4);
+        
+        VBox VB1 = new VBox(10,noInlineLabel,svb1,noShow,callMissed);
+        VB1.setAlignment(Pos.CENTER);
+        VBox VB2 = new VBox(10,serviceName,allLabel,lv,next,callAgain);
+        VB2.setAlignment(Pos.CENTER);
+        VBox VB3 = new VBox(10,new Region(),svb3,transfer,callTrans);
+        VB3.setAlignment(Pos.CENTER);
+        VBox VB4 = new VBox(10,autoCB,ticketIcon,done,lock);
+        VB4.setAlignment(Pos.CENTER);
+        HBox HB1 = new HBox(10,VB1,VB2,VB3,VB4);
+        HB1.setAlignment(Pos.CENTER);
+        HB1.setPadding(new Insets(50, 5, 5, 5));
+        HB1.setPrefSize(600, 330);
         
         //HBox hb5 = new HBox(30, loggedInUser, servingCounterLabel);
         
@@ -149,9 +170,11 @@ public class ControlView extends AnchorPane{
         vb1.setAlignment(Pos.CENTER);
         layoutVBox.setAlignment(Pos.CENTER);
         layoutVBox.setPadding(new Insets(50, 5, 5, 5));
+        layoutVBox.setPrefSize(600, 330);
         
-        this.getChildren().add(layoutVBox);
-        this.getChildren().add(currentlySerVingLabel);
+        this.getChildren().add(HB1);
+        this.getChildren().addAll(currentlySerVingLabel);
+        //layoutVBox.setBackground(new Background(new BackgroundFill(Paint.valueOf("blue"), CornerRadii.EMPTY, Insets.EMPTY)));
         this.getStylesheets().clear();
         this.getStylesheets().add("/styles/Style-Default.css");
     }
