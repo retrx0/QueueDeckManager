@@ -19,11 +19,6 @@ import java.util.List;
  */
 public class Staff {
     
-    final String url = "jdbc:mysql://104.155.33.7:3306/ticketing";
-    final String username = "root";
-    final String password = "rotflmao0000";
-    BasicConnectionPool pool = BasicConnectionPool.create(url, username, password);
-    
     private String staffName;
     private String staffNo;
     private Boolean online;
@@ -42,23 +37,6 @@ public class Staff {
         this.counter = counter;
         this.staffLevel = staffLevel;
         this.staffPassword = staffPassword;
-    }
-    
-    public List<Staff> getStaffs(){
-        int i = 0;
-        try{
-        Connection con = pool.getConnection();
-        ResultSet rs = con.prepareStatement("Select * from staff limit 100").executeQuery();
-        while(rs.next()){
-            Staff s = new Staff(rs.getString("staff_name"), rs.getString("staff_no"), rs.getBoolean("online"), rs.getInt("counter"), rs.getInt("staff_level"), rs.getString("password"));
-            staffList.add(i, s);
-            i++;
-            }
-            pool.releaseConnection(con);
-        }
-        catch(SQLException s){System.out.println(s);
-        }
-        return staffList;
     }
      
     public String getStaffName() {

@@ -5,6 +5,8 @@
  */
 package com.queuedeck.models;
 
+import com.queuedeck.controllers.FXMLController;
+import java.util.prefs.Preferences;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -15,6 +17,9 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
@@ -47,7 +52,6 @@ public class ControlView extends AnchorPane{
     
     
     private void init(){
-        
         Button noShow = new Button("No Show");
         Button next = new Button("Next");
         Button transfer = new Button("Transfer");
@@ -70,21 +74,12 @@ public class ControlView extends AnchorPane{
                 
         Label missedLabel = new Label("Missed");
         Label missedCounterLabel = new Label("2");
-        Label allLabel = new Label("All Tickets");
+        Label allLabel = new Label("All");
         Label transLabel = new Label("Transfered");
         Label transferCounterLabel = new Label("5");
-        Label loggedInUser = new Label("");
         Label currentlySerVingLabel = new Label("2");
-        Label servingCounterLabel = new Label("serving counter: ");
         Label serviceName = new Label(this.name);
         Label noInlineLabel = new Label("33",new ImageView("/img/icons8-queue-32.png"));
-        
-        MenuItem logout = new MenuItem("Logout");
-        MenuItem changePassword = new MenuItem("Change Password");
-        MenuItem ChangeCounter = new MenuItem("Change Counter");
-        MenuItem Stats = new MenuItem("Stats");
-        MenuItem chkforUpdates = new MenuItem("Chaeck For Updates");
-        MenuItem about = new MenuItem("About");
         
         ImageView missedIcon  = new ImageView("/img/170-512.png");
         ImageView transferIcon  = new ImageView("/img/icons8-exchange-802.png");
@@ -98,27 +93,25 @@ public class ControlView extends AnchorPane{
         ticketIcon.setSmooth(true);
         ticketIcon.setFitHeight(160);
         ticketIcon.setFitWidth(200);
-        ticketIcon.setLayoutX(420);
-        ticketIcon.setLayoutY(50);
+        ticketIcon.setLayoutX(390);
+        ticketIcon.setLayoutY(70);
         
-        currentlySerVingLabel.setLayoutX(420);
-        currentlySerVingLabel.setLayoutY(50);
+        currentlySerVingLabel.setLayoutX(455);
+        currentlySerVingLabel.setLayoutY(85);
         currentlySerVingLabel.setTextAlignment(TextAlignment.CENTER);
-        currentlySerVingLabel.setFont(Font.font("sans serif", 50));
+        currentlySerVingLabel.setFont(Font.font(50));
+        currentlySerVingLabel.setId("tlable");
+        
         serviceName.setTextAlignment(TextAlignment.CENTER);
         serviceName.setFont(new Font(40));
         serviceName.setTextFill(Paint.valueOf("white"));
+        serviceName.setId("title");
+        
         noInlineLabel.setAlignment(Pos.CENTER);
         serviceName.setAlignment(Pos.CENTER);
         allLabel.setAlignment(Pos.CENTER);
         missedLabel.setAlignment(Pos.CENTER);
         transLabel.setAlignment(Pos.CENTER);
-        
-//        Menu optionsMenu = new Menu("Options",null,changePassword,ChangeCounter,Stats,logout);
-//        Menu changeServiceMenu = new Menu("Change Service");
-//        Menu helpMenu = new Menu("Help",null,chkforUpdates,about);
-//        
-//        MenuBar menuBar = new MenuBar(optionsMenu,changeServiceMenu,helpMenu);
         
         CheckBox autoCB= new CheckBox("Auto Call Transfered");
         autoCB.setTextFill(Paint.valueOf("white"));
@@ -128,11 +121,13 @@ public class ControlView extends AnchorPane{
         lv.setPrefSize(165, 95);
         lv.setLayoutX(146);
         lv.setLayoutY(102);
+        Region r = new Region();
+        r.setPrefSize(130, 50);
+        HBox hb1 = new HBox(30, noInlineLabel,r,serviceName,autoCB);
         
-        HBox hb1 = new HBox(20, noInlineLabel,serviceName,autoCB);
-        
-        HBox shb1 = new HBox(10, missedLabel,allLabel,transLabel);
-        shb1.setAlignment(Pos.CENTER);
+        HBox shb1 = new HBox(30, missedLabel,allLabel,transLabel);
+        shb1.setAlignment(Pos.CENTER_LEFT);
+        shb1.setPadding(new Insets(0, 0, 0, 50));
         
         VBox svb1 = new VBox(10,missedIcon,missedCounterLabel);
         VBox svb2 = new VBox(10,lv);
@@ -140,43 +135,49 @@ public class ControlView extends AnchorPane{
         svb1.setAlignment(Pos.CENTER);
         svb2.setAlignment(Pos.CENTER);
         svb3.setAlignment(Pos.CENTER); 
-        HBox hb2 = new HBox(10, svb1,svb2,svb3);
+        Region r3 = new Region();
+        r3.setPrefWidth(20);
+        HBox hb2 = new HBox(15, r3,svb1,svb2,svb3);
+        hb2.setPadding(new Insets(0, 0, 0, 30));
+        //hb2.setBackground(new Background(new BackgroundFill(Paint.valueOf("blue"), CornerRadii.EMPTY, Insets.EMPTY)));
         
-        HBox hb3 = new HBox(10,noShow,next,transfer,done);
-        HBox hb4 = new HBox(10, callMissed,callAgain,callTrans,lock);
-        VBox vb1 = new VBox(10, hb3,hb4);
-        
-        VBox VB1 = new VBox(10,noInlineLabel,svb1,noShow,callMissed);
-        VB1.setAlignment(Pos.CENTER);
-        VBox VB2 = new VBox(10,serviceName,allLabel,lv,next,callAgain);
-        VB2.setAlignment(Pos.CENTER);
-        VBox VB3 = new VBox(10,new Region(),svb3,transfer,callTrans);
-        VB3.setAlignment(Pos.CENTER);
-        VBox VB4 = new VBox(10,autoCB,ticketIcon,done,lock);
-        VB4.setAlignment(Pos.CENTER);
-        HBox HB1 = new HBox(10,VB1,VB2,VB3,VB4);
-        HB1.setAlignment(Pos.CENTER);
-        HB1.setPadding(new Insets(50, 5, 5, 5));
-        HB1.setPrefSize(600, 330);
-        
+        Region r2= new Region();
+        r2.setPrefSize(50, 50);
+        HBox hb3 = new HBox(15,noShow,next,transfer,done);
+        HBox hb4 = new HBox(15, callMissed,callAgain,callTrans,lock);
+        VBox vb1 = new VBox(15, hb3,hb4);
+        vb1.setPadding(new Insets(20, 0, 0,0));
         //HBox hb5 = new HBox(30, loggedInUser, servingCounterLabel);
         
-        VBox layoutVBox = new VBox(5,hb1,shb1,hb2,vb1);
+        VBox layoutVBox = new VBox(10,hb1,shb1,hb2,vb1);
         
         hb1.setAlignment(Pos.CENTER);
-        hb2.setAlignment(Pos.CENTER);
+        //hb2.setAlignment(Pos.CENTER_LEFT);
         hb3.setAlignment(Pos.CENTER);
         hb4.setAlignment(Pos.CENTER);
         vb1.setAlignment(Pos.CENTER);
         layoutVBox.setAlignment(Pos.CENTER);
-        layoutVBox.setPadding(new Insets(50, 5, 5, 5));
-        layoutVBox.setPrefSize(600, 330);
+        layoutVBox.setPadding(new Insets(30, 5, 5, 5));
+        layoutVBox.setPrefSize(600, 360);
         
-        this.getChildren().add(HB1);
-        this.getChildren().addAll(currentlySerVingLabel);
+        this.getChildren().add(layoutVBox);
+        this.getChildren().addAll(ticketIcon,currentlySerVingLabel);
         //layoutVBox.setBackground(new Background(new BackgroundFill(Paint.valueOf("blue"), CornerRadii.EMPTY, Insets.EMPTY)));
         this.getStylesheets().clear();
         this.getStylesheets().add("/styles/Style-Default.css");
+        
+        //OnActions
+        FXMLController f = new FXMLController();
+        lock.setOnAction((t) -> {
+            Preferences prefs = Preferences.userNodeForPackage(getClass());
+            System.out.println((prefs.get("Staff No", "")));
+            //f.lockButtonPerformAction(lock, "A");
+        });
+        
+        next.setOnAction((t) -> {
+           //f.nextButtonActionToPerform(lv, autoCB, currentlySerVingLabel, "A");
+        });
+        
     }
     
 }

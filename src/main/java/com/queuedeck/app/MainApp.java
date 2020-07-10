@@ -1,6 +1,8 @@
 package com.queuedeck.app;
 
 import com.queuedeck.controllers.FXMLController;
+import com.queuedeck.models.DAOInterface;
+import com.queuedeck.models.JPAClass;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -26,7 +28,7 @@ public class MainApp extends Application {
         stage.setResizable(false);
         stage.show();
         // Add a custom icon.
-        stage.getIcons().add(new Image(this.getClass().getResource("/img/logo.ico.png").toString()));
+        stage.getIcons().add(new Image(this.getClass().getResource("/img/ficon.jpeg").toString()));
         
     }
 

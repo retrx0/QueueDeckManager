@@ -71,6 +71,10 @@ import com.queuedeck.effects.ShakeTransition;
 import com.queuedeck.models.Ticket;
 import com.queuedeck.effects.FadeInDownTransition;
 import com.queuedeck.models.ControlView;
+import com.queuedeck.models.DAOInterface;
+import com.queuedeck.models.JPAClass;
+import com.queuedeck.models.JPASQLQueries;
+import com.queuedeck.models.SQLQueries;
 import com.queuedeck.models.Service;
 import com.queuedeck.models.Staff;
 
@@ -91,7 +95,11 @@ public class FXMLController implements Initializable {
     String local_date = LocalDate.now().toString();
     boolean showNewTicketAlert = true;
     BasicConnectionPool pool = BasicConnectionPool.create(url, username, password);
-
+    DAOInterface d = new JPAClass();
+    static List<Service> servList;
+    static List<Staff> staffList;
+    static Staff loggedInStaff;
+    
     //static ConnectionPool connectionPool = BasicConnectionPool.create(url, username, password);
 //</editor-fold>
     
@@ -404,14 +412,12 @@ public class FXMLController implements Initializable {
 
     public void nextButtonActionToPerform(ListView allListVIew, CheckBox autoTransferCB, Label currentlyServingLabel, String tag) {
         try {
+
             Connection con = pool.getConnection();
             Statement stmt = con.createStatement();
             //first lock the Ticket
             stmt.executeUpdate("update tickets set locked = true, staff_no = '" + staffNoTextField.getText() + "' where time_called is null and locked is null and missing_client is null and tag='" + tag + "' and t_date='" + local_date + "' limit 1");
             stmt.executeUpdate("update transfer set locked = true, staff_no = '" + staffNoTextField.getText() + "' where time_called is null and locked is null and trans_to='" + tag + "' and t_date='" + local_date + "' limit 1");
-            //now get the Ticket
-            ResultSet rs = con.prepareStatement("select tag,t_no,service from tickets where time_called is null and locked is not null and missing_client is null and tag='" + tag + "' and staff_no = '" + staffNoTextField.getText() + "' and t_date='" + local_date + "' limit 1").executeQuery();
-            ResultSet rs2 = con.prepareStatement("select tag, t_no from transfer where time_called is null and locked is not null and staff_no = '" + staffNoTextField.getText() + "' and trans_to = '" + tag + "' and t_date='" + local_date + "' limit 1").executeQuery();
             String localtime = String.valueOf(LocalTime.now().minusHours(1)).substring(0, 8);
             if (!allListVIew.getItems().isEmpty()) {
                 if (allListVIew.getItems().size() > 2) {
@@ -426,6 +432,8 @@ public class FXMLController implements Initializable {
                     stmt.executeUpdate("update transfer set time_done = '" + localtime + "' where tag = '" + vtag + "' and t_no = '" + vtn + "' and time_done is null and t_date='" + local_date + "'");
                 }
             }
+            ResultSet rs = con.prepareStatement("select tag,t_no,service from tickets where time_called is null and locked is not null and missing_client is null and tag='" + tag + "' and staff_no = '" + staffNoTextField.getText() + "' and t_date='" + local_date + "' limit 1").executeQuery();
+            ResultSet rs2 = con.prepareStatement("select tag, t_no from transfer where time_called is null and locked is not null and staff_no = '" + staffNoTextField.getText() + "' and trans_to = '" + tag + "' and t_date='" + local_date + "' limit 1").executeQuery();
             if (rs.next()) {
                 if (autoTransferCB.isSelected()) {
                     if (rs2.next()) {
@@ -565,8 +573,7 @@ public class FXMLController implements Initializable {
             } else {
                 createAlert(AlertType.WARNING, "Error", "No ticket called", null);
             }
-        } catch (Exception ex) {
-        }
+        } catch (Exception ex) {ex.printStackTrace();}
     }
 
     public void callTransferedActionToPerform(ListView allListView, Label currentlyServing, String tag) {
@@ -745,7 +752,7 @@ public class FXMLController implements Initializable {
                                     if (cbv != null) {
                                         if (cbv.equals(services)) {
                                             doFadeinDown(cardsStackPane, menuBar);
-                                            doFadeInUpTransition(cardsStackPane, new ControlView("Service"));
+                                            doFadeInUpTransition(cardsStackPane, new ControlView("Service Test"));
                                             //menuBar.setVisible(true);
                                             //doSlideInFromTop(cardsStackPane, node);
                                             item.setDisable(true);
@@ -753,6 +760,12 @@ public class FXMLController implements Initializable {
                                             Preferences p = Preferences.userNodeForPackage(getClass());
                                             p.clear();
                                             p.put("Staff No", staffNoTextField.getText());
+                                            staffList = d.listStaff();
+                                            for(int i=0;i<staffList.size();i++){
+                                                if(staffNoTextField.getText().equals(staffList.get(i).getStaffNo()))
+                                                    loggedInStaff = staffList.get(i);
+                                            }
+                                            System.out.println(loggedInStaff);
                                             loggedInAsLabel.setText("[" + staffNoTextField.getText() + "] " + stfname + "");
                                             counterLabel.setText("serving counter: " + serCounter + "");
                                             showMissedTickets(currentCusMissedNoLabel, currentCusTag);
@@ -1765,242 +1778,246 @@ public class FXMLController implements Initializable {
         loginActionLabel.setText("");
     }
 //</editor-fold>
-    
+
     int oCurrentNotif;
     boolean flag1 = false;
     boolean flag2 = false;
     Boolean visible = false;
-    String pline,trans;
+    String pline, trans;
+
     @Override
     public void initialize(URL Url, ResourceBundle rb) {
-        loginCombo.getItems().clear();
         loginCombo.getItems().addAll("Current Customer", "Services", "New Customer", "Others");
         menuBar.setVisible(false);
         showNode(cardsStackPane, loginNode);
         Preferences prefs = Preferences.userNodeForPackage(getClass());
         staffNoTextField.setText(prefs.get("Staff No", ""));
-        Platform.runLater(() -> {
-            containerPane.getScene().getWindow().setOnCloseRequest((t) -> {close();});
-            visible = containerPane.getScene().getWindow().isShowing();
-        });
-        
-        Task task = new Task() {
-            @Override
-            protected Object call() throws Exception {
-                Connection con2 = pool.getConnection();
-                while (visible) {
-                    Platform.runLater(() -> {
-                        try {
-                            Statement stmt = con2.createStatement();
-                            String local_time = String.valueOf(LocalTime.now().getHour()) + ":" + String.valueOf(LocalTime.now().getMinute()) + ":" + "00";
-                            PreparedStatement ps = con2.prepareStatement("select s_no, unlock_time from services");
-                            ResultSet rst = ps.executeQuery();
-                            while (rst.next()) {
-                                String sno = rst.getString("s_no");
-                                String time = rst.getString("unlock_time");
-                                if (sno.equals(currentCusTag)) {
-                                    if (time != null) {
-                                        if (time.equals(local_time)) {
-                                            currentCusLockBtn.setSelected(false);
-                                            currentCusLockBtn.setText("Lock");
-                                            stmt.executeUpdate("update services set locked = '0', unlock_time = null where s_no = '" + sno + "'");
-                                        }
-                                    } else {
-                                        currentCusLockBtn.setSelected(false);
-                                        currentCusLockBtn.setText("Lock");
-                                    }
-                                } else if (sno.equals(newCusTag)) {
-                                    if (time != null) {
-                                        if (time.equals(local_time)) {
-                                            newCusLockBtn.setSelected(false);
-                                            newCusLockBtn.setText("Lock");
-                                            stmt.executeUpdate("update services set locked = '0', unlock_time = null where s_no = '" + sno + "'");
-                                        }
-                                    } else {
-                                        newCusLockBtn.setSelected(false);
-                                        newCusLockBtn.setText("Lock");
-                                    }
-                                } else if (sno.equals(serviceTag)) {
-                                    if (time != null) {
-                                        if (time.equals(local_time)) {
-                                            servicesLockBtn.setSelected(false);
-                                            servicesLockBtn.setText("Lock");
-                                            stmt.executeUpdate("update services set locked = '0', unlock_time = null where s_no = '" + sno + "'");
-                                        }
-                                    } else {
-                                        servicesLockBtn.setSelected(false);
-                                        servicesLockBtn.setText("Lock");
-                                    }
-                                } else if (sno.equals(othersTag)) {
-                                    if (time != null) {
-                                        if (time.equals(local_time)) {
-                                            otherLockBtn.setSelected(true);
-                                            otherLockBtn.setText("Lock");
-                                            stmt.executeUpdate("update services set locked = '0', unlock_time = null where s_no = '" + sno + "'");
-                                        }
-                                    } else {
-                                        otherLockBtn.setSelected(true);
-                                        otherLockBtn.setText("Lock");
-                                    }
-                                }
-                            }
-                            
-                            if (loginCombo.getSelectionModel().getSelectedItem() != null) {
-                                String cbv = loginCombo.getSelectionModel().getSelectedItem();
-                                switch (cbv) {
-                                    case "Others":
-                                try {
-                                        //Connection con2 = connectionPool.getConnection();
-                                        ResultSet rs5 = con2.prepareStatement("select sum(case when time_called IS NULL and tag = '" + othersTag + "' then 1 else 0 end) as count_num from tickets where t_date='" + local_date + "'").executeQuery();
-                                        ResultSet rs5b = con2.prepareStatement("select sum(case when time_called IS NULL and trans_to = '" + othersTag + "' then 1 else 0 end) as count_num from transfer where t_date='" + local_date + "'").executeQuery();
-                                        int ppline = 0;
-                                        int pplineb = 0;
-                                        while (rs5.next() && rs5b.next()) {
-                                            ppline = rs5.getInt("count_num");
-                                            pplineb = rs5b.getInt("count_num");
-                                            if ("" + ppline == null) {
-                                                ppline = 0;
-                                                otherNoInline.setText("" + ppline);
-                                            } else if ("" + pplineb == null) {
-                                                pplineb = 0;
-                                            } else if ("" + pplineb != null) {
-                                                ppline = (ppline + pplineb);
-                                            }
-                                            otherNoInline.setText("" + ppline);
-                                        }
-                                        int notifCount = ppline + pplineb;
-                                        if (notifCount > 0) {
-                                            flag1 = true;
-                                        }
-                                        if (notifCount == 0 && flag1) {
-                                            flag2 = true;
-                                        }
-                                        if (flag1 && flag2 && notifCount > 0) {
-                                            createAlertWhenThereIsATkt();
-                                            flag1 = false;
-                                            flag2 = false;
-                                        }
-                                        PreparedStatement countTrans4 = con2.prepareStatement("select sum(case when time_called IS NULL and trans_to = '" + othersTag + "' then 1 else 0 end) as count_num_trans from transfer where t_date='" + local_date + "'");
-                                        ResultSet rst2 = countTrans4.executeQuery();
-                                        while (rst2.next()) {
-                                            String noTrans = rst2.getString("count_num_trans");
-                                            otherTranferNoLabel.setText(noTrans);
-                                        }
-                                    } catch (NumberFormatException | SQLException e) {
-                                        e.printStackTrace();
-                                    }
-                                    break;
-                                    case "Current Customer":
-                                try {
-                                        //Connection con2 = connectionPool.getConnection();
-                                        ResultSet rs5 = con2.prepareStatement("select sum(case when time_called IS NULL and tag = '" + currentCusTag + "' then 1 else 0 end) as count_num from tickets where t_date='" + local_date + "'").executeQuery();
-                                        ResultSet rs5b = con2.prepareStatement("select sum(case when time_called IS NULL and trans_to = '" + currentCusTag + "' then 1 else 0 end) as count_num from transfer where t_date='" + local_date + "'").executeQuery();
-                                        while (rs5.next() && rs5b.next()) {
-                                            String ppline = rs5.getString("count_num");
-                                            String pplineb = rs5b.getString("count_num");
-                                            if (ppline == null) {
-                                                ppline = String.valueOf(0);
-                                                pline = ppline;
-                                                currentCusNoInline.setText(ppline);
-                                            } else {
-                                                if (pplineb != null) {
-                                                    ppline = String.valueOf(Integer.valueOf(ppline) + Integer.valueOf(pplineb));
-                                                    pline =ppline;
-                                                }
-                                                currentCusNoInline.setText(ppline);
-                                            }
-                                        }
-                                        PreparedStatement countTrans4 = con2.prepareStatement("select sum(case when time_called IS NULL and trans_to = '" + currentCusTag + "' then 1 else 0 end) as count_num_trans from transfer where t_date='" + local_date + "'");
-                                        ResultSet rst2 = countTrans4.executeQuery();
-                                        while (rst2.next()) {
-                                            String noTrans = rst2.getString("count_num_trans");
-                                            trans = noTrans;
-                                            currentCustomerTranferNoLabel.setText(noTrans);
-                                        }
-                                    } catch (NumberFormatException | SQLException e) {
-                                        e.printStackTrace();
-                                    }
-                                    break;
-                                    case "New Customer":
-                                try {
-                                        //Connection con2 = connectionPool.getConnection();
-                                        PreparedStatement countInLine = con2.prepareStatement("select sum(case when time_called IS NULL and tag = '" + newCusTag + "' then 1 else 0 end) as count_num from tickets where t_date='" + local_date + "'");
-                                        PreparedStatement countInLineb = con2.prepareStatement("select sum(case when time_called IS NULL and trans_to = '" + newCusTag + "' then 1 else 0 end) as count_num from transfer where t_date='" + local_date + "'");
-                                        ResultSet rs5 = countInLine.executeQuery();
-                                        ResultSet rs5b = countInLineb.executeQuery();
-                                        while (rs5.next() && rs5b.next()) {
-                                            String ppline = rs5.getString("count_num");
-                                            String pplineb = rs5b.getString("count_num");
-                                            if (ppline == null) {
-                                                ppline = String.valueOf(0);
-                                                newCusNoInline.setText(ppline);
-                                            } else {
-                                                if (pplineb != null) {
-                                                    ppline = String.valueOf(Integer.valueOf(ppline) + Integer.valueOf(pplineb));
-                                                }
-                                                newCusNoInline.setText(ppline);
-                                            }
-                                        }
-                                        PreparedStatement countTrans4 = con2.prepareStatement("select sum(case when time_called IS NULL and trans_to = '" + newCusTag + "' then 1 else 0 end) as count_num_trans from transfer where t_date='" + local_date + "'");
-                                        ResultSet rst2 = countTrans4.executeQuery();
-                                        while (rst2.next()) {
-                                            String noTrans = rst2.getString("count_num_trans");
-                                            newCustomerTranferNoLabel.setText(noTrans);
-                                        }
-                                    } catch (NumberFormatException | SQLException e) {
-                                        e.printStackTrace();
-                                    }
-                                    break;
-                                    case "Services":
-                                try {
-                                        //Connection con2 = connectionPool.getConnection();
-                                        PreparedStatement countInLine = con2.prepareStatement("select sum(case when time_called IS NULL and tag = '" + serviceTag + "' then 1 else 0 end) as count_num from tickets where t_date='" + local_date + "'");
-                                        PreparedStatement countInLineb = con2.prepareStatement("select sum(case when time_called IS NULL and trans_to = '" + serviceTag + "' then 1 else 0 end) as count_num from transfer where t_date='" + local_date + "'");
-                                        ResultSet rs5 = countInLine.executeQuery();
-                                        ResultSet rs5b = countInLineb.executeQuery();
-                                        while (rs5.next() && rs5b.next()) {
-                                            String ppline = rs5.getString("count_num");
-                                            String pplineb = rs5b.getString("count_num");
-                                            if (ppline == null) {
-                                                ppline = String.valueOf(0);
-                                                servicesNoInline.setText(ppline);
-                                            } else {
-                                                if (pplineb != null) {
-                                                    ppline = String.valueOf(Integer.valueOf(ppline) + Integer.valueOf(pplineb));
-                                                }
-                                                servicesNoInline.setText(ppline);
-                                            }
-                                        }
-                                        PreparedStatement countTrans4 = con2.prepareStatement("select sum(case when time_called IS NULL and trans_to = '" + serviceTag + "' then 1 else 0 end) as count_num_trans from transfer where t_date='" + local_date + "'");
-                                        ResultSet rst2 = countTrans4.executeQuery();
-                                        while (rst2.next()) {
-                                            String noTrans = rst2.getString("count_num_trans");
-                                            servicesTranferNoLabel.setText(noTrans);
-                                        }
-                                    } catch (NumberFormatException | SQLException e) {
-                                        e.printStackTrace();
-                                    }
-                                    break;
-                                    case "Business Customers":
 
-                                        break;
+        Platform.runLater(() -> {
+            containerPane.getScene().getWindow().setOnCloseRequest((t) -> {
+                close();
+                visible = false;
+            });
+            visible = containerPane.getScene().getWindow().isShowing();
+
+            if (visible) {
+                Task task = new Task() {
+                    @Override
+                    protected Object call() throws Exception {
+                        Connection con2 = pool.getConnection();
+                        while (true) {
+                            if(visible == false) break;
+                            Platform.runLater(() -> {
+                                try {
+                                    Statement stmt = con2.createStatement();
+                                    String local_time = String.valueOf(LocalTime.now().getHour()) + ":" + String.valueOf(LocalTime.now().getMinute()) + ":" + "00";
+                                    PreparedStatement ps = con2.prepareStatement("select s_no, unlock_time from services");
+                                    ResultSet rst = ps.executeQuery();
+                                    while (rst.next()) {
+                                        String sno = rst.getString("s_no");
+                                        String time = rst.getString("unlock_time");
+                                        if (sno.equals(currentCusTag)) {
+                                            if (time != null) {
+                                                if (time.equals(local_time)) {
+                                                    currentCusLockBtn.setSelected(false);
+                                                    currentCusLockBtn.setText("Lock");
+                                                    stmt.executeUpdate("update services set locked = '0', unlock_time = null where s_no = '" + sno + "'");
+                                                }
+                                            } else {
+                                                currentCusLockBtn.setSelected(false);
+                                                currentCusLockBtn.setText("Lock");
+                                            }
+                                        } else if (sno.equals(newCusTag)) {
+                                            if (time != null) {
+                                                if (time.equals(local_time)) {
+                                                    newCusLockBtn.setSelected(false);
+                                                    newCusLockBtn.setText("Lock");
+                                                    stmt.executeUpdate("update services set locked = '0', unlock_time = null where s_no = '" + sno + "'");
+                                                }
+                                            } else {
+                                                newCusLockBtn.setSelected(false);
+                                                newCusLockBtn.setText("Lock");
+                                            }
+                                        } else if (sno.equals(serviceTag)) {
+                                            if (time != null) {
+                                                if (time.equals(local_time)) {
+                                                    servicesLockBtn.setSelected(false);
+                                                    servicesLockBtn.setText("Lock");
+                                                    stmt.executeUpdate("update services set locked = '0', unlock_time = null where s_no = '" + sno + "'");
+                                                }
+                                            } else {
+                                                servicesLockBtn.setSelected(false);
+                                                servicesLockBtn.setText("Lock");
+                                            }
+                                        } else if (sno.equals(othersTag)) {
+                                            if (time != null) {
+                                                if (time.equals(local_time)) {
+                                                    otherLockBtn.setSelected(true);
+                                                    otherLockBtn.setText("Lock");
+                                                    stmt.executeUpdate("update services set locked = '0', unlock_time = null where s_no = '" + sno + "'");
+                                                }
+                                            } else {
+                                                otherLockBtn.setSelected(true);
+                                                otherLockBtn.setText("Lock");
+                                            }
+                                        }
+                                    }
+
+                                    if (loginCombo.getSelectionModel().getSelectedItem() != null) {
+                                        String cbv = loginCombo.getSelectionModel().getSelectedItem();
+                                        switch (cbv) {
+                                            case "Others":
+                                try {
+                                                //Connection con2 = connectionPool.getConnection();
+                                                ResultSet rs5 = con2.prepareStatement("select sum(case when time_called IS NULL and tag = '" + othersTag + "' then 1 else 0 end) as count_num from tickets where t_date='" + local_date + "'").executeQuery();
+                                                ResultSet rs5b = con2.prepareStatement("select sum(case when time_called IS NULL and trans_to = '" + othersTag + "' then 1 else 0 end) as count_num from transfer where t_date='" + local_date + "'").executeQuery();
+                                                int ppline = 0;
+                                                int pplineb = 0;
+                                                while (rs5.next() && rs5b.next()) {
+                                                    ppline = rs5.getInt("count_num");
+                                                    pplineb = rs5b.getInt("count_num");
+                                                    if ("" + ppline == null) {
+                                                        ppline = 0;
+                                                        otherNoInline.setText("" + ppline);
+                                                    } else if ("" + pplineb == null) {
+                                                        pplineb = 0;
+                                                    } else if ("" + pplineb != null) {
+                                                        ppline = (ppline + pplineb);
+                                                    }
+                                                    otherNoInline.setText("" + ppline);
+                                                }
+                                                int notifCount = ppline + pplineb;
+                                                if (notifCount > 0) {
+                                                    flag1 = true;
+                                                }
+                                                if (notifCount == 0 && flag1) {
+                                                    flag2 = true;
+                                                }
+                                                if (flag1 && flag2 && notifCount > 0) {
+                                                    createAlertWhenThereIsATkt();
+                                                    flag1 = false;
+                                                    flag2 = false;
+                                                }
+                                                PreparedStatement countTrans4 = con2.prepareStatement("select sum(case when time_called IS NULL and trans_to = '" + othersTag + "' then 1 else 0 end) as count_num_trans from transfer where t_date='" + local_date + "'");
+                                                ResultSet rst2 = countTrans4.executeQuery();
+                                                while (rst2.next()) {
+                                                    String noTrans = rst2.getString("count_num_trans");
+                                                    otherTranferNoLabel.setText(noTrans);
+                                                }
+                                            } catch (NumberFormatException | SQLException e) {
+                                                e.printStackTrace();
+                                            }
+                                            break;
+                                            case "Current Customer":
+                                try {
+                                                //Connection con2 = connectionPool.getConnection();
+                                                ResultSet rs5 = con2.prepareStatement("select sum(case when time_called IS NULL and tag = '" + currentCusTag + "' then 1 else 0 end) as count_num from tickets where t_date='" + local_date + "'").executeQuery();
+                                                ResultSet rs5b = con2.prepareStatement("select sum(case when time_called IS NULL and trans_to = '" + currentCusTag + "' then 1 else 0 end) as count_num from transfer where t_date='" + local_date + "'").executeQuery();
+                                                while (rs5.next() && rs5b.next()) {
+                                                    String ppline = rs5.getString("count_num");
+                                                    String pplineb = rs5b.getString("count_num");
+                                                    if (ppline == null) {
+                                                        ppline = String.valueOf(0);
+                                                        pline = ppline;
+                                                        currentCusNoInline.setText(ppline);
+                                                    } else {
+                                                        if (pplineb != null) {
+                                                            ppline = String.valueOf(Integer.valueOf(ppline) + Integer.valueOf(pplineb));
+                                                            pline = ppline;
+                                                        }
+                                                        currentCusNoInline.setText(ppline);
+                                                    }
+                                                }
+                                                PreparedStatement countTrans4 = con2.prepareStatement("select sum(case when time_called IS NULL and trans_to = '" + currentCusTag + "' then 1 else 0 end) as count_num_trans from transfer where t_date='" + local_date + "'");
+                                                ResultSet rst2 = countTrans4.executeQuery();
+                                                while (rst2.next()) {
+                                                    String noTrans = rst2.getString("count_num_trans");
+                                                    trans = noTrans;
+                                                    currentCustomerTranferNoLabel.setText(noTrans);
+                                                }
+                                            } catch (NumberFormatException | SQLException e) {
+                                                e.printStackTrace();
+                                            }
+                                            break;
+                                            case "New Customer":
+                                try {
+                                                //Connection con2 = connectionPool.getConnection();
+                                                PreparedStatement countInLine = con2.prepareStatement("select sum(case when time_called IS NULL and tag = '" + newCusTag + "' then 1 else 0 end) as count_num from tickets where t_date='" + local_date + "'");
+                                                PreparedStatement countInLineb = con2.prepareStatement("select sum(case when time_called IS NULL and trans_to = '" + newCusTag + "' then 1 else 0 end) as count_num from transfer where t_date='" + local_date + "'");
+                                                ResultSet rs5 = countInLine.executeQuery();
+                                                ResultSet rs5b = countInLineb.executeQuery();
+                                                while (rs5.next() && rs5b.next()) {
+                                                    String ppline = rs5.getString("count_num");
+                                                    String pplineb = rs5b.getString("count_num");
+                                                    if (ppline == null) {
+                                                        ppline = String.valueOf(0);
+                                                        newCusNoInline.setText(ppline);
+                                                    } else {
+                                                        if (pplineb != null) {
+                                                            ppline = String.valueOf(Integer.valueOf(ppline) + Integer.valueOf(pplineb));
+                                                        }
+                                                        newCusNoInline.setText(ppline);
+                                                    }
+                                                }
+                                                PreparedStatement countTrans4 = con2.prepareStatement("select sum(case when time_called IS NULL and trans_to = '" + newCusTag + "' then 1 else 0 end) as count_num_trans from transfer where t_date='" + local_date + "'");
+                                                ResultSet rst2 = countTrans4.executeQuery();
+                                                while (rst2.next()) {
+                                                    String noTrans = rst2.getString("count_num_trans");
+                                                    newCustomerTranferNoLabel.setText(noTrans);
+                                                }
+                                            } catch (NumberFormatException | SQLException e) {
+                                                e.printStackTrace();
+                                            }
+                                            break;
+                                            case "Services":
+                                try {
+                                                //Connection con2 = connectionPool.getConnection();
+                                                PreparedStatement countInLine = con2.prepareStatement("select sum(case when time_called IS NULL and tag = '" + serviceTag + "' then 1 else 0 end) as count_num from tickets where t_date='" + local_date + "'");
+                                                PreparedStatement countInLineb = con2.prepareStatement("select sum(case when time_called IS NULL and trans_to = '" + serviceTag + "' then 1 else 0 end) as count_num from transfer where t_date='" + local_date + "'");
+                                                ResultSet rs5 = countInLine.executeQuery();
+                                                ResultSet rs5b = countInLineb.executeQuery();
+                                                while (rs5.next() && rs5b.next()) {
+                                                    String ppline = rs5.getString("count_num");
+                                                    String pplineb = rs5b.getString("count_num");
+                                                    if (ppline == null) {
+                                                        ppline = String.valueOf(0);
+                                                        servicesNoInline.setText(ppline);
+                                                    } else {
+                                                        if (pplineb != null) {
+                                                            ppline = String.valueOf(Integer.valueOf(ppline) + Integer.valueOf(pplineb));
+                                                        }
+                                                        servicesNoInline.setText(ppline);
+                                                    }
+                                                }
+                                                PreparedStatement countTrans4 = con2.prepareStatement("select sum(case when time_called IS NULL and trans_to = '" + serviceTag + "' then 1 else 0 end) as count_num_trans from transfer where t_date='" + local_date + "'");
+                                                ResultSet rst2 = countTrans4.executeQuery();
+                                                while (rst2.next()) {
+                                                    String noTrans = rst2.getString("count_num_trans");
+                                                    servicesTranferNoLabel.setText(noTrans);
+                                                }
+                                            } catch (NumberFormatException | SQLException e) {
+                                                e.printStackTrace();
+                                            }
+                                            break;
+                                            case "Business Customers":
+
+                                                break;
+                                        }
+                                    }
+                                } catch (SQLException ex) {
+                                    ex.printStackTrace();
                                 }
-                            }
-                        } catch (SQLException ex) {
-                            ex.printStackTrace();
+                            });
+                            Thread.sleep(1000);
                         }
-                    });
-                    Thread.sleep(1000);
-                }
-                //pool.releaseConnection(con2);
-                return null;
+                        //pool.releaseConnection(con2);
+                        return null;
+
+                    }
+                };
+                new Thread(task).start();
             }
-        };
-        int i =1;
-        task.setOnSucceeded((t) -> {
-            currentCusNoInline.setText(pline);
-            currentCustomerTranferNoLabel.setText(trans);
+
         });
-        new Thread(task).start();
     }
 }

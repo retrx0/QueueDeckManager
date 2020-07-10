@@ -5,15 +5,15 @@
  */
 package com.queuedeck.models;
 
-import javafx.scene.control.ListView;
+import java.util.List;
 
 /**
  *
  * @author ABDULRAHMAN ILLO
  */
-public interface SQLQueries {
+public interface DAOInterface {
     
-    public void lockTicket(String staffNo, String tag);
-    public void addTimeDone(String staffNo, String tag,ListView allListVIew);
+    public List<Service> listServices();
+    public List<Staff> listStaff();
     
 }

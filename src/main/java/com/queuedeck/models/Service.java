@@ -18,11 +18,6 @@ import java.util.List;
  */
 public class Service {
 
-    final String url = "jdbc:mysql://104.155.33.7:3306/ticketing";
-    final String username = "root";
-    final String password = "rotflmao0000";
-    BasicConnectionPool pool = BasicConnectionPool.create(url, username, password);
-
     String serviceNo;
     String serviceName;
     Boolean locked;
@@ -32,27 +27,6 @@ public class Service {
     List<Service> services = new ArrayList<>();
 
     public Service() {
-    }
-
-    public List<Service> listServices() {
-        try {
-            Connection con = pool.getConnection();
-            ResultSet rs = con.prepareStatement("select * from services").executeQuery();
-            int i = 0;
-            while (rs.next()) {
-                Service s = new Service();
-                s.setServiceNo(rs.getString("s_no"));
-                s.setServiceName(rs.getString("service"));
-                s.setLockedByStaff(rs.getString("staff_no"));
-                s.setLocked(rs.getBoolean("locked"));
-                s.setUnlockTime("unlock_time");
-                services.add(i, s);
-                i++;
-            }
-            pool.releaseConnection(con);
-        } catch (SQLException s) {
-        }
-        return services;
     }
 
     public String getServiceName() {
