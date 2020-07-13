@@ -5,6 +5,7 @@
  */
 package com.queuedeck.models;
 
+import com.queuedeck.controllers.FXMLController;
 import com.queuedeck.pool.BasicConnectionPool;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -22,10 +23,6 @@ import javafx.scene.control.ListView;
  */
 public class JPASQLQueries implements SQLQueries {
 
-    final String url = "jdbc:mysql://104.155.33.7:3306/ticketing";
-    final String username = "root";
-    final String password = "rotflmao0000";
-    BasicConnectionPool pool = BasicConnectionPool.create(url, username, password);
     LocalDate local_date = LocalDate.now();
 
     public JPASQLQueries() {
@@ -33,8 +30,8 @@ public class JPASQLQueries implements SQLQueries {
     
     @Override
     public void lockTicket(String staffNo, String tag) {
+        Connection con = FXMLController.pool.getConnection();
         try {
-            Connection con = pool.getConnection();
             Statement stmt = con.createStatement();
             //first lock the Ticket
             stmt.executeUpdate("update tickets set locked = true, staff_no = '" + staffNo + "' where time_called is null and locked is null and missing_client is null and tag='" + tag + "' and t_date='" + local_date + "' limit 1");
@@ -42,12 +39,13 @@ public class JPASQLQueries implements SQLQueries {
         } catch (SQLException ex) {
             Logger.getLogger(JPASQLQueries.class.getName()).log(Level.SEVERE, null, ex);
         }
+        FXMLController.pool.releaseConnection(con);
     }
 
     @Override
     public void addTimeDone(String staffNo, String tag, ListView allListVIew) {
+        Connection con = FXMLController.pool.getConnection();
         try {
-            Connection con = pool.getConnection();
             Statement stmt = con.createStatement();
             String localtime = String.valueOf(LocalTime.now().minusHours(1)).substring(0, 8);
             if (!allListVIew.getItems().isEmpty()) {
@@ -66,6 +64,7 @@ public class JPASQLQueries implements SQLQueries {
         } catch (SQLException ex) {
             Logger.getLogger(JPASQLQueries.class.getName()).log(Level.SEVERE, null, ex);
         }
+        FXMLController.pool.releaseConnection(con);
     }
 
 }

@@ -3,13 +3,17 @@
  */
 
 #title{
-    -fx-font-size: 30px;
+    -fx-font-size: 25px;
     -fx-text-fill: white;
 }
 #tlable{
-    -fx-font-size: 100px;
+    -fx-font-size: 80px;
     -fx-text-fill: #253365;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 10,0.4,0,0);
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 5,0.4,0,0);
+}
+
+.control-view-pane{
+    /*-fx-background-color: linear-gradient(to bottom right, #0066ff 59%, #253365 100%);*/
 }
 
 VBox > .label{
@@ -73,14 +77,14 @@ scroll-bar:horizontal .track, .scroll-bar:vertical .track{
 
 .list-view{
     -fx-padding: 0px;
-    -fx-background-color: white;
+    -fx-background-color: #2E315B;
     -fx-background-radius: 5px;
     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 20,0.4,0,0);
 }
 .list-view:filled{
     -fx-background-radius: 5px;
     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 20,0.4,0,0);
-    -fx-background-color: white;
+    -fx-background-color: #2E315B;
 }
 .list-cell:filled, .list-cell:selected, .list-cell:focused, .list-cell:filled:selected {
     -fx-background-color:  #505b83;
@@ -90,7 +94,7 @@ scroll-bar:horizontal .track, .scroll-bar:vertical .track{
     -fx-background-color:  #2E315B;
 }
 .list-cell:filled:hover {
-    -fx-background-color:  #2E315B;
+    -fx-background-color:  #505b83;
     -fx-text-fill: white;
 }
 

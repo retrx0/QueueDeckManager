@@ -77,13 +77,17 @@ import com.queuedeck.models.JPASQLQueries;
 import com.queuedeck.models.SQLQueries;
 import com.queuedeck.models.Service;
 import com.queuedeck.models.Staff;
+import com.queuedeck.models.StaffLevel;
+import java.io.IOException;
+import java.util.prefs.BackingStoreException;
+import javafx.scene.control.Menu;
 
 public class FXMLController implements Initializable {
 
     //<editor-fold defaultstate="collapsed" desc="Global Variables">
-    final String url = "jdbc:mysql://104.155.33.7:3306/ticketing";
-    final String username = "root";
-    final String password = "rotflmao0000";
+    static final String url = "jdbc:mysql://104.155.33.7:3306/ticketing";
+    static final String username = "root";
+    static final String password = "rotflmao0000";
     String staffNo = "";
     Object selection;
     String tkt;
@@ -94,11 +98,12 @@ public class FXMLController implements Initializable {
     private String serviceTag;
     String local_date = LocalDate.now().toString();
     boolean showNewTicketAlert = true;
-    BasicConnectionPool pool = BasicConnectionPool.create(url, username, password);
+    public static BasicConnectionPool pool = BasicConnectionPool.create(url, username, password);
     DAOInterface d = new JPAClass();
-    static List<Service> servList;
-    static List<Staff> staffList;
-    static Staff loggedInStaff;
+    List<Service> servList = d.listServices();
+    List<Staff> staffList = d.listStaff();
+    List<ControlView> paneList = new ArrayList<>();
+    public static Staff loggedInStaff;
     
     //static ConnectionPool connectionPool = BasicConnectionPool.create(url, username, password);
 //</editor-fold>
@@ -218,6 +223,7 @@ public class FXMLController implements Initializable {
     Label otherMissedNoLabel;
     @FXML
     Label servicesMissedNoLabel;
+    @FXML Menu changeServiceMenu;
 //</editor-fold>
 
     //<editor-fold defaultstate="collapsed" desc="Action Methods">
@@ -277,7 +283,7 @@ public class FXMLController implements Initializable {
         Dialog<Pair<String, String>> dialog = new Dialog<>();
         dialog.setTitle("Transfer Ticket");
         dialog.setHeaderText("Select queue and service to transfer to");
-        dialog.setGraphic(new ImageView(this.getClass().getResource("/iconsAndLogos/icons8-exchange-802.png").toString()));
+        dialog.setGraphic(new ImageView(this.getClass().getResource("/img/icons8-exchange-802.png").toString()));
         ButtonType done = new ButtonType("Transfer", ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(done, ButtonType.CANCEL);
 
@@ -381,38 +387,11 @@ public class FXMLController implements Initializable {
     }
 
     public void callTicketToDisplay(String tToC) {
-        try {
-            Connection con = pool.getConnection();
-            Statement stmt = con.createStatement();
-            ResultSet staff_counter = stmt.executeQuery("select counter from staff where staff_no = '" + staffNoTextField.getText() + "'");
-            String counter = "";
-            while (staff_counter.next()) {
-                counter = staff_counter.getString("counter");
-            }
-            System.out.println(tToC + " Goto Counter " + counter);
-            pool.releaseConnection(con);
-        } catch (SQLException e) {
-        }
-    }
-
-    public void callTicketToDisplay(Deque<Ticket> q) {
-        try {
-            Connection con = pool.getConnection();
-            Statement stmt = con.createStatement();
-            ResultSet staff_counter = stmt.executeQuery("select counter from staff where staff_no = '" + staffNoTextField.getText() + "'");
-            String counter = "";
-            while (staff_counter.next()) {
-                counter = staff_counter.getString("counter");
-            }
-            System.out.println(q.peek().getTag() + q.peek().getTicketNumber() + " Goto Counter " + counter);
-            pool.releaseConnection(con);
-        } catch (SQLException e) {
-        }
+        System.out.println(tkt+" goto counter "+loggedInStaff.getCounter());
     }
 
     public void nextButtonActionToPerform(ListView allListVIew, CheckBox autoTransferCB, Label currentlyServingLabel, String tag) {
         try {
-
             Connection con = pool.getConnection();
             Statement stmt = con.createStatement();
             //first lock the Ticket
@@ -634,22 +613,17 @@ public class FXMLController implements Initializable {
             Connection con = pool.getConnection();
             if (!allListView.getItems().isEmpty()) {
                 String gettkt = allListView.getItems().get(allListView.getItems().size() - 1).toString();
-                String tkt = gettkt.substring(0, gettkt.indexOf(" "));
-                PreparedStatement call_ticket = con.prepareStatement("select time_done from tickets where tag = '" + gettkt.substring(0, 1) + "' and t_no = '" + gettkt.substring(1, gettkt.indexOf(" ")) + "' and t_date='" + local_date + "' limit 1");
-                ResultSet rs = call_ticket.executeQuery();
+                String tkt1= gettkt.substring(0, gettkt.indexOf(" "));
+                ResultSet rs = con.prepareStatement("select time_done from tickets where tag = '" + gettkt.substring(0, 1) + "' and t_no = '" + gettkt.substring(1, gettkt.indexOf(" ")) + "' and t_date='" + local_date + "' limit 1").executeQuery();
                 while (rs.next()) {
                     String t_done = rs.getString("time_done");
                     if (t_done == null) {
-                        currentlyServing.setText(tkt);
+                        currentlyServing.setText(tkt1);
                         flash(currentlyServing);
-                        callTicketToDisplay(tkt);
-                    } else {
-                        createAlert(AlertType.WARNING, "Error Calling Ticket", "Ticket cannot be called again", null);
-                    }
+                        callTicketToDisplay(tkt1);
+                    } else {createAlert(AlertType.WARNING, "Error Calling Ticket", "Ticket cannot be called again", null);}
                 }
-            } else {
-                createAlert(AlertType.WARNING, "Empty Queue", "Queue is empty", null);
-            }
+            } else {createAlert(AlertType.WARNING, "Empty Queue", "Queue is empty", null);}
             pool.releaseConnection(con);
         } catch (SQLException e) {
             e.printStackTrace();
@@ -670,11 +644,13 @@ public class FXMLController implements Initializable {
                         loginActionLabel.setText("Incorrect Staff No or Password");
                     } else {
                         PreparedStatement get_pswd = con.prepareStatement("select password, count(*), online, staff_name, counter, staff_level from staff where staff_no = '" + staffNoTextField.getText() + "'");
-                        PreparedStatement con_pswd = con.prepareStatement("select md5('" + passwordTextField.getText() + "') as password");
                         PreparedStatement get_tags = con.prepareStatement("select s_no, service from services");
                         ResultSet gp = get_pswd.executeQuery();
-                        ResultSet cp = con_pswd.executeQuery();
+                        ResultSet cp = con.prepareStatement("select md5('" + passwordTextField.getText() + "') as password").executeQuery();
                         ResultSet gt = get_tags.executeQuery();
+                        StaffLevel sl = new StaffLevel();
+                        String passwordTextFieldinmd5 = null;
+                        while(cp.next()){ passwordTextFieldinmd5 = cp.getString("password");}
                         while (gt.next()) {
                             String services = gt.getString("service");
                             switch (services) {
@@ -692,100 +668,173 @@ public class FXMLController implements Initializable {
                                     break;
                             }
                         }
-                        while (gp.next() && cp.next()) {
-                            String gp1 = gp.getString("password");
-                            String gp2 = gp.getString("count(*)");
-                            String cp1 = cp.getString("password");
-                            String gp3 = gp.getString("online");
-                            String stfname = gp.getString("staff_name");
-                            String serCounter = gp.getString("counter");
-                            staff_level = gp.getString("staff_level");
-                            //check to see if there is a staff with the staff no given
-                            if (gp2.equals(String.valueOf(0))) {
-                                shake(loginActionLabel);
-                                loginActionLabel.setText("Incorrect Staff No or Password");
-                            } //check to see if that staff is already logged in
-                            else if (gp3.equals("1")) {
-                                shake(loginActionLabel);
-                                loginActionLabel.setText("Staff Logged In Already");
-                            } else if (gp1.equals(cp1)) {
-                                String cbv = loginCombo.getSelectionModel().getSelectedItem();
-                                if (cbv == null) {
-                                    shake(loginCombo);
+                        for(int i=0;i<staffList.size();i++){
+                            if(staffList.get(i).getStaffNo().equals(staffNoTextField.getText())){
+                                staff_level = ""+staffList.get(i).getStaffLevel();
+                                if(staffList.isEmpty()){
                                     shake(loginActionLabel);
-                                    loginActionLabel.setText("Please select a service");
+                                    loginActionLabel.setText("Incorrect Staff No or Password");
                                 }
-                                Statement stmt2 = con.createStatement();
-                                //businessCusMenuItem.setEnabled(false);
-                                newCusMenuItem.setDisable(true);
-                                otherMenuItem.setDisable(true);
-                                currentCusMenuItem.setDisable(true);
-                                servicesMenuItem.setDisable(true);
-                                MenuItem item = null;
-                                Node node = null;
-                                PreparedStatement get_services = con.prepareStatement("Select service from staff_level where level_id = '" + staff_level + "'");
-                                ResultSet gs = get_services.executeQuery();
-                                while (gs.next()) {
-                                    String services = gs.getString("service");
-                                    switch (services) {
-                                        case "Current Customer":
-                                            currentCusMenuItem.setDisable(false);
-                                            item = currentCusMenuItem;
-                                            node = currentCustomerNode;
-                                            break;
-                                        case "Services":
-                                            servicesMenuItem.setDisable(false);
-                                            item = servicesMenuItem;
-                                            node = servicesNode;
-                                            break;
-                                        case "New Customer":
-                                            newCusMenuItem.setDisable(false);
-                                            item = newCusMenuItem;
-                                            node = newCustomerNode;
-                                            break;
-                                        case "Others":
-                                            otherMenuItem.setDisable(false);
-                                            item = otherMenuItem;
-                                            node = otherNode;
-                                            break;
+                                else if(staffList.get(i).getOnline()){
+                                    shake(loginActionLabel);
+                                    loginActionLabel.setText("Staff Logged In Already");
+                                }
+                                else if(staffList.get(i).getStaffPassword().equals(passwordTextFieldinmd5)){
+                                    if (loginCombo.getSelectionModel().getSelectedItem() == null) {
+                                        shake(loginCombo);
+                                        shake(loginActionLabel);
+                                        loginActionLabel.setText("Please select a service");
                                     }
-                                    if (cbv != null) {
-                                        if (cbv.equals(services)) {
-                                            doFadeinDown(cardsStackPane, menuBar);
-                                            doFadeInUpTransition(cardsStackPane, new ControlView("Service Test"));
-                                            //menuBar.setVisible(true);
-                                            //doSlideInFromTop(cardsStackPane, node);
-                                            item.setDisable(true);
-                                            stmt2.executeUpdate("update staff set online = '1' where staff_no = '" + staffNoTextField.getText() + "'");
-                                            Preferences p = Preferences.userNodeForPackage(getClass());
-                                            p.clear();
-                                            p.put("Staff No", staffNoTextField.getText());
-                                            staffList = d.listStaff();
-                                            for(int i=0;i<staffList.size();i++){
-                                                if(staffNoTextField.getText().equals(staffList.get(i).getStaffNo()))
-                                                    loggedInStaff = staffList.get(i);
+                                    MenuItem item = null;
+                                    Node node = null;
+                                    List<String> l = d.getServicesForLevel(staff_level);
+                                    for (int m = 0; m < changeServiceMenu.getItems().size(); m++) {
+                                        changeServiceMenu.getItems().get(m).setDisable(true);
+                                        //if(m<=l.size()){
+                                            if(l.contains(changeServiceMenu.getItems().get(m).getText()))
+                                                changeServiceMenu.getItems().get(m).setDisable(false);
+                                        //}
+                                        if(changeServiceMenu.getItems().get(m).getText().equals(loginCombo.getSelectionModel().getSelectedItem()))
+                                            item = changeServiceMenu.getItems().get(m);
+                                    }
+                                    for (int j = 0; j < l.size(); j++) {
+                                        //if(l.contains(item.getText()))
+                                           // item.setDisable(false);
+                                        //System.out.println(item.getText());
+                                        //System.out.println(l.get(j));
+                                        node = currentCustomerNode;
+                                    
+                                        if(loginCombo.getSelectionModel().getSelectedItem() != null){
+                                            if(loginCombo.getSelectionModel().getSelectedItem().equals(l.get(j))){
+                                                doFadeinDown(cardsStackPane, menuBar);
+                                                doFadeIn(cardsStackPane, d.getControlView(paneList, loginCombo.getSelectionModel().getSelectedItem()));
+                                                item.setDisable(true);
+                                                con.prepareStatement("update staff set online = '1' where staff_no = '" + staffNoTextField.getText() + "'").executeUpdate();
+                                                Preferences p = Preferences.userNodeForPackage(getClass());
+                                                p.clear();
+                                                p.put("Staff No", staffNoTextField.getText());
+                                                for(int k=0;k<staffList.size();k++){
+                                                    if(staffNoTextField.getText().equals(staffList.get(k).getStaffNo()))
+                                                        loggedInStaff = staffList.get(k);
+                                                }
+                                                System.out.println(loggedInStaff);
+                                                loggedInAsLabel.setText("[" + staffNoTextField.getText() + "] " + loggedInStaff.getStaffName() + "");
+                                                counterLabel.setText("serving counter: " + loggedInStaff.getCounter() + "");
+                                                showMissedTickets(currentCusMissedNoLabel, currentCusTag);
+                                                showMissedTickets(newCusMissedNoLabel, newCusTag);
+                                                showMissedTickets(servicesMissedNoLabel, serviceTag);
+                                                showMissedTickets(otherMissedNoLabel, othersTag);
+                                            }else{
+                                                shake(loginCombo);
+                                                shake(loginActionLabel);
+                                                loginActionLabel.setText("Please Select An Appropriate Service");
                                             }
-                                            System.out.println(loggedInStaff);
-                                            loggedInAsLabel.setText("[" + staffNoTextField.getText() + "] " + stfname + "");
-                                            counterLabel.setText("serving counter: " + serCounter + "");
-                                            showMissedTickets(currentCusMissedNoLabel, currentCusTag);
-                                            showMissedTickets(newCusMissedNoLabel, newCusTag);
-                                            showMissedTickets(servicesMissedNoLabel, serviceTag);
-                                            showMissedTickets(otherMissedNoLabel, othersTag);
-                                        } else {
-                                            shake(loginCombo);
-                                            shake(loginActionLabel);
-                                            loginActionLabel.setText("Please Select An Appropriate Service");
                                         }
-                                    }
                                 }
-                            } else {
-                                shake(staffNoTextField);
-                                shake(passwordTextField);
-                                shake(loginActionLabel);
-                                loginActionLabel.setText("Incorrect Staff No and/or Password");
+                            }
+                                else{
+                                    shake(staffNoTextField);
+                                    shake(passwordTextField);
+                                    shake(loginActionLabel);
+                                    loginActionLabel.setText("Incorrect Staff No and/or Password");
+                                }
                             }
                         }
+                        
+//                        while (gp.next() && cp.next()) {
+//                            String gp1 = gp.getString("password");
+//                            String gp2 = gp.getString("count(*)");
+//                            String cp1 = cp.getString("password");
+//                            String gp3 = gp.getString("online");
+//                            String stfname = gp.getString("staff_name");
+//                            String serCounter = gp.getString("counter");
+//                            staff_level = gp.getString("staff_level");
+//                            //check to see if there is a staff with the staff no given
+//                            if (gp2.equals(String.valueOf(0))) {
+//                                shake(loginActionLabel);
+//                                loginActionLabel.setText("Incorrect Staff No or Password");
+//                            } //check to see if that staff is already logged in
+//                            else if (gp3.equals("1")) {
+//                                shake(loginActionLabel);
+//                                loginActionLabel.setText("Staff Logged In Already");
+//                            } else if (gp1.equals(cp1)) {
+//                                String cbv = loginCombo.getSelectionModel().getSelectedItem();
+//                                if (cbv == null) {
+//                                    shake(loginCombo);
+//                                    shake(loginActionLabel);
+//                                    loginActionLabel.setText("Please select a service");
+//                                }
+//                                Statement stmt2 = con.createStatement();
+//                                //businessCusMenuItem.setEnabled(false);
+//                                newCusMenuItem.setDisable(true);
+//                                otherMenuItem.setDisable(true);
+//                                currentCusMenuItem.setDisable(true);
+//                                servicesMenuItem.setDisable(true);
+//                                MenuItem item = null;
+//                                Node node = null;
+//                                PreparedStatement get_services = con.prepareStatement("Select service from staff_level where level_id = '" + staff_level + "'");
+//                                ResultSet gs = get_services.executeQuery();
+//                                while (gs.next()) {
+//                                    String services = gs.getString("service");
+//                                    switch (services) {
+//                                        case "Current Customer":
+//                                            currentCusMenuItem.setDisable(false);
+//                                            item = currentCusMenuItem;
+//                                            node = currentCustomerNode;
+//                                            break;
+//                                        case "Services":
+//                                            servicesMenuItem.setDisable(false);
+//                                            item = servicesMenuItem;
+//                                            node = servicesNode;
+//                                            break;
+//                                        case "New Customer":
+//                                            newCusMenuItem.setDisable(false);
+//                                            item = newCusMenuItem;
+//                                            node = newCustomerNode;
+//                                            break;
+//                                        case "Others":
+//                                            otherMenuItem.setDisable(false);
+//                                            item = otherMenuItem;
+//                                            node = otherNode;
+//                                            break;
+//                                    }
+//                                    if (cbv != null) {
+//                                        if (cbv.equals(services)) {
+//                                            doFadeinDown(cardsStackPane, menuBar);
+//                                            doFadeInUpTransition(cardsStackPane, new ControlView("Service Test"));
+//                                            //menuBar.setVisible(true);
+//                                            //doSlideInFromTop(cardsStackPane, node);
+//                                            item.setDisable(true);
+//                                            stmt2.executeUpdate("update staff set online = '1' where staff_no = '" + staffNoTextField.getText() + "'");
+//                                            Preferences p = Preferences.userNodeForPackage(getClass());
+//                                            p.clear();
+//                                            p.put("Staff No", staffNoTextField.getText());
+//                                            staffList = d.listStaff();
+//                                            for(int i=0;i<staffList.size();i++){
+//                                                if(staffNoTextField.getText().equals(staffList.get(i).getStaffNo()))
+//                                                    loggedInStaff = staffList.get(i);
+//                                            }
+//                                            System.out.println(loggedInStaff);
+//                                            loggedInAsLabel.setText("[" + staffNoTextField.getText() + "] " + stfname + "");
+//                                            counterLabel.setText("serving counter: " + serCounter + "");
+//                                            showMissedTickets(currentCusMissedNoLabel, currentCusTag);
+//                                            showMissedTickets(newCusMissedNoLabel, newCusTag);
+//                                            showMissedTickets(servicesMissedNoLabel, serviceTag);
+//                                            showMissedTickets(otherMissedNoLabel, othersTag);
+//                                        } else {
+//                                            shake(loginCombo);
+//                                            shake(loginActionLabel);
+//                                            loginActionLabel.setText("Please Select An Appropriate Service");
+//                                        }
+//                                    }
+//                                }
+//                            } else {
+//                                shake(staffNoTextField);
+//                                shake(passwordTextField);
+//                                shake(loginActionLabel);
+//                                loginActionLabel.setText("Incorrect Staff No and/or Password");
+//                            }
+//                        }
                     }
                 } else {
                     shake(staffNoTextField);
@@ -795,7 +844,7 @@ public class FXMLController implements Initializable {
                 }
                 pool.releaseConnection(con);
             }
-        } catch (Exception e) {
+        } catch (IOException | InterruptedException | SQLException | BackingStoreException e) {
             e.printStackTrace();
         }
     }
@@ -983,44 +1032,51 @@ public class FXMLController implements Initializable {
             String selecteditem = loginCombo.getSelectionModel().getSelectedItem();
             doFadeInUpTransition(cardsStackPane, nodeToShow);
             Connection con = pool.getConnection();
-            PreparedStatement get_services = con.prepareStatement("Select service from staff_level where level_id = '" + staff_level + "'");
-            ResultSet gs = get_services.executeQuery();
-            while (gs.next()) {
-                String services = gs.getString("service");
-                switch (services) {
-                    case "Current Customer":
-                        if (!selecteditem.equals("Current Customer")) {
-                            currentCusMenuItem.setDisable(false);
-                        } else {
-                            currentCusMenuItem.setDisable(true);
-                        }
-                        break;
-                    case "Services":
-                        //servicesMenuItem.setEnabled(true);
-                        if (!selecteditem.equals("Services")) {
-                            servicesMenuItem.setDisable(false);
-                        } else {
-                            servicesMenuItem.setDisable(true);
-                        }
-                        break;
-                    case "New Customer":
-                        //newCusMenuItem.setEnabled(true);
-                        if (!selecteditem.equals("New Customer")) {
-                            newCusMenuItem.setDisable(false);
-                        } else {
-                            newCusMenuItem.setDisable(true);
-                        }
-                        break;
-                    case "Others":
-                        //otherMenuItem.setEnabled(true);
-                        if (!selecteditem.equals("Others")) {
-                            otherMenuItem.setDisable(false);
-                        } else {
-                            otherMenuItem.setDisable(true);
-                        }
-                        break;
-                }
+            ResultSet gs = con.prepareStatement("Select service from staff_level where level_id = '" + staff_level + "'").executeQuery();
+            List ls = d.getServicesForLevel(staff_level);
+            
+            for (int i = 0; i < ls.size(); i++) {
+                if(selecteditem.equals(ls.get(i)))
+                    changeServiceMenu.getItems().get(i).setDisable(true);
+                else
+                    changeServiceMenu.getItems().get(i).setDisable(false);
             }
+//            while (gs.next()) {
+//                String services = gs.getString("service");
+//                switch (services) {
+//                    case "Current Customer":
+//                        if (!selecteditem.equals("Current Customer")) {
+//                            currentCusMenuItem.setDisable(false);
+//                        } else {
+//                            currentCusMenuItem.setDisable(true);
+//                        }
+//                        break;
+//                    case "Services":
+//                        //servicesMenuItem.setEnabled(true);
+//                        if (!selecteditem.equals("Services")) {
+//                            servicesMenuItem.setDisable(false);
+//                        } else {
+//                            servicesMenuItem.setDisable(true);
+//                        }
+//                        break;
+//                    case "New Customer":
+//                        //newCusMenuItem.setEnabled(true);
+//                        if (!selecteditem.equals("New Customer")) {
+//                            newCusMenuItem.setDisable(false);
+//                        } else {
+//                            newCusMenuItem.setDisable(true);
+//                        }
+//                        break;
+//                    case "Others":
+//                        //otherMenuItem.setEnabled(true);
+//                        if (!selecteditem.equals("Others")) {
+//                            otherMenuItem.setDisable(false);
+//                        } else {
+//                            otherMenuItem.setDisable(true);
+//                        }
+//                        break;
+//                }
+//            }
             pool.releaseConnection(con);
         } catch (SQLException ex) {
             ex.printStackTrace();
@@ -1787,236 +1843,299 @@ public class FXMLController implements Initializable {
 
     @Override
     public void initialize(URL Url, ResourceBundle rb) {
-        loginCombo.getItems().addAll("Current Customer", "Services", "New Customer", "Others");
+        DAOInterface d = new JPAClass();
+        changeServiceMenu.getItems().clear();
+        for(int i=0;i<servList.size();i++){
+            loginCombo.getItems().add(i, servList.get(i).getServiceName());
+            MenuItem mi = new MenuItem(servList.get(i).getServiceName());
+            changeServiceMenu.getItems().add(i, mi);
+            ControlView cv = new ControlView(servList.get(i));
+            paneList.add(cv);
+            mi.setOnAction((t) -> {
+                //changeServicePerformAction("", currentCustomerNode);
+                currentCusMenuClicked();
+            });
+        }
+        
+        //loginCombo.getItems().addAll("Current Customer", "Services", "New Customer", "Others");
         menuBar.setVisible(false);
         showNode(cardsStackPane, loginNode);
+        
         Preferences prefs = Preferences.userNodeForPackage(getClass());
         staffNoTextField.setText(prefs.get("Staff No", ""));
 
         Platform.runLater(() -> {
+            
             containerPane.getScene().getWindow().setOnCloseRequest((t) -> {
                 close();
                 visible = false;
             });
-            visible = containerPane.getScene().getWindow().isShowing();
+//            visible = containerPane.getScene().getWindow().isShowing();
 
-            if (visible) {
                 Task task = new Task() {
                     @Override
                     protected Object call() throws Exception {
                         Connection con2 = pool.getConnection();
                         while (true) {
-                            if(visible == false) break;
                             Platform.runLater(() -> {
+                                
+//                            if(visible == false) break;
+                                //LocalTime local_time = LocalTime.parse(String.valueOf(LocalTime.now().getHour()) + ":" + String.valueOf(LocalTime.now().getMinute()) + ":" + "00");
+                                LocalTime localTime = LocalTime.parse(String.valueOf(LocalTime.now()).substring(0, 2) + ":" + String.valueOf(LocalTime.now()).substring(3, 5) + ":" + "00");
                                 try {
                                     Statement stmt = con2.createStatement();
-                                    String local_time = String.valueOf(LocalTime.now().getHour()) + ":" + String.valueOf(LocalTime.now().getMinute()) + ":" + "00";
-                                    PreparedStatement ps = con2.prepareStatement("select s_no, unlock_time from services");
-                                    ResultSet rst = ps.executeQuery();
-                                    while (rst.next()) {
-                                        String sno = rst.getString("s_no");
-                                        String time = rst.getString("unlock_time");
-                                        if (sno.equals(currentCusTag)) {
-                                            if (time != null) {
-                                                if (time.equals(local_time)) {
-                                                    currentCusLockBtn.setSelected(false);
-                                                    currentCusLockBtn.setText("Lock");
-                                                    stmt.executeUpdate("update services set locked = '0', unlock_time = null where s_no = '" + sno + "'");
-                                                }
-                                            } else {
-                                                currentCusLockBtn.setSelected(false);
-                                                currentCusLockBtn.setText("Lock");
-                                            }
-                                        } else if (sno.equals(newCusTag)) {
-                                            if (time != null) {
-                                                if (time.equals(local_time)) {
-                                                    newCusLockBtn.setSelected(false);
-                                                    newCusLockBtn.setText("Lock");
-                                                    stmt.executeUpdate("update services set locked = '0', unlock_time = null where s_no = '" + sno + "'");
-                                                }
-                                            } else {
-                                                newCusLockBtn.setSelected(false);
-                                                newCusLockBtn.setText("Lock");
-                                            }
-                                        } else if (sno.equals(serviceTag)) {
-                                            if (time != null) {
-                                                if (time.equals(local_time)) {
-                                                    servicesLockBtn.setSelected(false);
-                                                    servicesLockBtn.setText("Lock");
-                                                    stmt.executeUpdate("update services set locked = '0', unlock_time = null where s_no = '" + sno + "'");
-                                                }
-                                            } else {
-                                                servicesLockBtn.setSelected(false);
-                                                servicesLockBtn.setText("Lock");
-                                            }
-                                        } else if (sno.equals(othersTag)) {
-                                            if (time != null) {
-                                                if (time.equals(local_time)) {
-                                                    otherLockBtn.setSelected(true);
-                                                    otherLockBtn.setText("Lock");
-                                                    stmt.executeUpdate("update services set locked = '0', unlock_time = null where s_no = '" + sno + "'");
-                                                }
-                                            } else {
-                                                otherLockBtn.setSelected(true);
-                                                otherLockBtn.setText("Lock");
+                                    servList = d.listServices();
+                                    for(int i=0;i<servList.size();i++){
+                                        if(servList.get(i).getUnlockTime() != null){
+                                            LocalTime unlockTime = LocalTime.parse(servList.get(i).getUnlockTime());
+                                            System.out.println("unlockt");
+                                            if(unlockTime.equals(localTime)){
+                                                paneList.get(i).lock.setSelected(false);
+                                                paneList.get(i).lock.setText("Lock");
+                                                stmt.executeUpdate("update services set locked = '0', unlock_time = null where s_no = '" + servList.get(i).getServiceNo() + "'");
+                                                System.out.println("time unlock done");
+                                            }else{
+                                                paneList.get(i).lock.setSelected(false);
+                                                paneList.get(i).lock.setText("Lock");
                                             }
                                         }
-                                    }
-
-                                    if (loginCombo.getSelectionModel().getSelectedItem() != null) {
-                                        String cbv = loginCombo.getSelectionModel().getSelectedItem();
-                                        switch (cbv) {
-                                            case "Others":
-                                try {
-                                                //Connection con2 = connectionPool.getConnection();
-                                                ResultSet rs5 = con2.prepareStatement("select sum(case when time_called IS NULL and tag = '" + othersTag + "' then 1 else 0 end) as count_num from tickets where t_date='" + local_date + "'").executeQuery();
-                                                ResultSet rs5b = con2.prepareStatement("select sum(case when time_called IS NULL and trans_to = '" + othersTag + "' then 1 else 0 end) as count_num from transfer where t_date='" + local_date + "'").executeQuery();
-                                                int ppline = 0;
-                                                int pplineb = 0;
-                                                while (rs5.next() && rs5b.next()) {
-                                                    ppline = rs5.getInt("count_num");
-                                                    pplineb = rs5b.getInt("count_num");
-                                                    if ("" + ppline == null) {
-                                                        ppline = 0;
-                                                        otherNoInline.setText("" + ppline);
-                                                    } else if ("" + pplineb == null) {
-                                                        pplineb = 0;
-                                                    } else if ("" + pplineb != null) {
-                                                        ppline = (ppline + pplineb);
-                                                    }
-                                                    otherNoInline.setText("" + ppline);
+                                        
+                                        if (loginCombo.getSelectionModel().getSelectedItem() != null) {
+                                        if(loginCombo.getSelectionModel().getSelectedItem().equals(servList.get(i).getServiceName())){
+                                            ResultSet rs5 = con2.prepareStatement("select sum(case when time_called IS NULL and tag = '" + servList.get(i).getServiceNo() + "' then 1 else 0 end) as count_num from tickets where t_date='" + local_date + "'").executeQuery();
+                                            ResultSet rs5b = con2.prepareStatement("select sum(case when time_called IS NULL and trans_to = '" + servList.get(i).getServiceNo() + "' then 1 else 0 end) as count_num from transfer where t_date='" + local_date + "'").executeQuery();
+                                            int ppline = 0;
+                                            int pplineb = 0;
+                                            while (rs5.next() && rs5b.next()) {
+                                                ppline = rs5.getInt("count_num");
+                                                pplineb = rs5b.getInt("count_num");
+                                                if ("" + ppline == null) {
+                                                    ppline = 0;
+                                                    paneList.get(i).noInlineLabel.setText("" + ppline);
+                                                }else if ("" + pplineb == null) pplineb = 0;
+                                                 else if ("" + pplineb != null) ppline = (ppline + pplineb);
+                                                paneList.get(i).noInlineLabel.setText("" + ppline);
                                                 }
                                                 int notifCount = ppline + pplineb;
-                                                if (notifCount > 0) {
-                                                    flag1 = true;
-                                                }
-                                                if (notifCount == 0 && flag1) {
-                                                    flag2 = true;
-                                                }
+                                                if (notifCount > 0) flag1 = true;
+                                                if (notifCount == 0 && flag1) flag2 = true;
                                                 if (flag1 && flag2 && notifCount > 0) {
                                                     createAlertWhenThereIsATkt();
                                                     flag1 = false;
                                                     flag2 = false;
                                                 }
-                                                PreparedStatement countTrans4 = con2.prepareStatement("select sum(case when time_called IS NULL and trans_to = '" + othersTag + "' then 1 else 0 end) as count_num_trans from transfer where t_date='" + local_date + "'");
-                                                ResultSet rst2 = countTrans4.executeQuery();
+                                                ResultSet rst2 = con2.prepareStatement("select sum(case when time_called IS NULL and trans_to = '" + servList.get(i).getServiceNo() + "' then 1 else 0 end) as count_num_trans from transfer where t_date='" + local_date + "'").executeQuery();
                                                 while (rst2.next()) {
                                                     String noTrans = rst2.getString("count_num_trans");
-                                                    otherTranferNoLabel.setText(noTrans);
+                                                    paneList.get(i).transferCounterLabel.setText(noTrans);
                                                 }
-                                            } catch (NumberFormatException | SQLException e) {
-                                                e.printStackTrace();
                                             }
-                                            break;
-                                            case "Current Customer":
-                                try {
-                                                //Connection con2 = connectionPool.getConnection();
-                                                ResultSet rs5 = con2.prepareStatement("select sum(case when time_called IS NULL and tag = '" + currentCusTag + "' then 1 else 0 end) as count_num from tickets where t_date='" + local_date + "'").executeQuery();
-                                                ResultSet rs5b = con2.prepareStatement("select sum(case when time_called IS NULL and trans_to = '" + currentCusTag + "' then 1 else 0 end) as count_num from transfer where t_date='" + local_date + "'").executeQuery();
-                                                while (rs5.next() && rs5b.next()) {
-                                                    String ppline = rs5.getString("count_num");
-                                                    String pplineb = rs5b.getString("count_num");
-                                                    if (ppline == null) {
-                                                        ppline = String.valueOf(0);
-                                                        pline = ppline;
-                                                        currentCusNoInline.setText(ppline);
-                                                    } else {
-                                                        if (pplineb != null) {
-                                                            ppline = String.valueOf(Integer.valueOf(ppline) + Integer.valueOf(pplineb));
-                                                            pline = ppline;
-                                                        }
-                                                        currentCusNoInline.setText(ppline);
-                                                    }
-                                                }
-                                                PreparedStatement countTrans4 = con2.prepareStatement("select sum(case when time_called IS NULL and trans_to = '" + currentCusTag + "' then 1 else 0 end) as count_num_trans from transfer where t_date='" + local_date + "'");
-                                                ResultSet rst2 = countTrans4.executeQuery();
-                                                while (rst2.next()) {
-                                                    String noTrans = rst2.getString("count_num_trans");
-                                                    trans = noTrans;
-                                                    currentCustomerTranferNoLabel.setText(noTrans);
-                                                }
-                                            } catch (NumberFormatException | SQLException e) {
-                                                e.printStackTrace();
-                                            }
-                                            break;
-                                            case "New Customer":
-                                try {
-                                                //Connection con2 = connectionPool.getConnection();
-                                                PreparedStatement countInLine = con2.prepareStatement("select sum(case when time_called IS NULL and tag = '" + newCusTag + "' then 1 else 0 end) as count_num from tickets where t_date='" + local_date + "'");
-                                                PreparedStatement countInLineb = con2.prepareStatement("select sum(case when time_called IS NULL and trans_to = '" + newCusTag + "' then 1 else 0 end) as count_num from transfer where t_date='" + local_date + "'");
-                                                ResultSet rs5 = countInLine.executeQuery();
-                                                ResultSet rs5b = countInLineb.executeQuery();
-                                                while (rs5.next() && rs5b.next()) {
-                                                    String ppline = rs5.getString("count_num");
-                                                    String pplineb = rs5b.getString("count_num");
-                                                    if (ppline == null) {
-                                                        ppline = String.valueOf(0);
-                                                        newCusNoInline.setText(ppline);
-                                                    } else {
-                                                        if (pplineb != null) {
-                                                            ppline = String.valueOf(Integer.valueOf(ppline) + Integer.valueOf(pplineb));
-                                                        }
-                                                        newCusNoInline.setText(ppline);
-                                                    }
-                                                }
-                                                PreparedStatement countTrans4 = con2.prepareStatement("select sum(case when time_called IS NULL and trans_to = '" + newCusTag + "' then 1 else 0 end) as count_num_trans from transfer where t_date='" + local_date + "'");
-                                                ResultSet rst2 = countTrans4.executeQuery();
-                                                while (rst2.next()) {
-                                                    String noTrans = rst2.getString("count_num_trans");
-                                                    newCustomerTranferNoLabel.setText(noTrans);
-                                                }
-                                            } catch (NumberFormatException | SQLException e) {
-                                                e.printStackTrace();
-                                            }
-                                            break;
-                                            case "Services":
-                                try {
-                                                //Connection con2 = connectionPool.getConnection();
-                                                PreparedStatement countInLine = con2.prepareStatement("select sum(case when time_called IS NULL and tag = '" + serviceTag + "' then 1 else 0 end) as count_num from tickets where t_date='" + local_date + "'");
-                                                PreparedStatement countInLineb = con2.prepareStatement("select sum(case when time_called IS NULL and trans_to = '" + serviceTag + "' then 1 else 0 end) as count_num from transfer where t_date='" + local_date + "'");
-                                                ResultSet rs5 = countInLine.executeQuery();
-                                                ResultSet rs5b = countInLineb.executeQuery();
-                                                while (rs5.next() && rs5b.next()) {
-                                                    String ppline = rs5.getString("count_num");
-                                                    String pplineb = rs5b.getString("count_num");
-                                                    if (ppline == null) {
-                                                        ppline = String.valueOf(0);
-                                                        servicesNoInline.setText(ppline);
-                                                    } else {
-                                                        if (pplineb != null) {
-                                                            ppline = String.valueOf(Integer.valueOf(ppline) + Integer.valueOf(pplineb));
-                                                        }
-                                                        servicesNoInline.setText(ppline);
-                                                    }
-                                                }
-                                                PreparedStatement countTrans4 = con2.prepareStatement("select sum(case when time_called IS NULL and trans_to = '" + serviceTag + "' then 1 else 0 end) as count_num_trans from transfer where t_date='" + local_date + "'");
-                                                ResultSet rst2 = countTrans4.executeQuery();
-                                                while (rst2.next()) {
-                                                    String noTrans = rst2.getString("count_num_trans");
-                                                    servicesTranferNoLabel.setText(noTrans);
-                                                }
-                                            } catch (NumberFormatException | SQLException e) {
-                                                e.printStackTrace();
-                                            }
-                                            break;
-                                            case "Business Customers":
-
-                                                break;
                                         }
                                     }
-                                } catch (SQLException ex) {
-                                    ex.printStackTrace();
-                                }
+                                }catch (SQLException ex) {System.out.println(ex);}
                             });
-                            Thread.sleep(1000);
+//                                    PreparedStatement ps = con2.prepareStatement("select s_no, unlock_time from services");
+//                                    ResultSet rst = ps.executeQuery();
+//                                    while (rst.next()) {
+//                                        String sno = rst.getString("s_no");
+//                                        String time = rst.getString("unlock_time");
+//                                        if (sno.equals(currentCusTag)) {
+//                                            if (time != null) {
+//                                                if (time.equals(local_time)) {
+//                                                    currentCusLockBtn.setSelected(false);
+//                                                    currentCusLockBtn.setText("Lock");
+//                                                    stmt.executeUpdate("update services set locked = '0', unlock_time = null where s_no = '" + sno + "'");
+//                                                }
+//                                            } else {
+//                                                currentCusLockBtn.setSelected(false);
+//                                                currentCusLockBtn.setText("Lock");
+//                                            }
+//                                        } else if (sno.equals(newCusTag)) {
+//                                            if (time != null) {
+//                                                if (time.equals(local_time)) {
+//                                                    newCusLockBtn.setSelected(false);
+//                                                    newCusLockBtn.setText("Lock");
+//                                                    stmt.executeUpdate("update services set locked = '0', unlock_time = null where s_no = '" + sno + "'");
+//                                                }
+//                                            } else {
+//                                                newCusLockBtn.setSelected(false);
+//                                                newCusLockBtn.setText("Lock");
+//                                            }
+//                                        } else if (sno.equals(serviceTag)) {
+//                                            if (time != null) {
+//                                                if (time.equals(local_time)) {
+//                                                    servicesLockBtn.setSelected(false);
+//                                                    servicesLockBtn.setText("Lock");
+//                                                    stmt.executeUpdate("update services set locked = '0', unlock_time = null where s_no = '" + sno + "'");
+//                                                }
+//                                            } else {
+//                                                servicesLockBtn.setSelected(false);
+//                                                servicesLockBtn.setText("Lock");
+//                                            }
+//                                        } else if (sno.equals(othersTag)) {
+//                                            if (time != null) {
+//                                                if (time.equals(local_time)) {
+//                                                    otherLockBtn.setSelected(true);
+//                                                    otherLockBtn.setText("Lock");
+//                                                    stmt.executeUpdate("update services set locked = '0', unlock_time = null where s_no = '" + sno + "'");
+//                                                }
+//                                            } else {
+//                                                otherLockBtn.setSelected(true);
+//                                                otherLockBtn.setText("Lock");
+//                                            }
+//                                        }
+//                                    }
+
+//                                    if (loginCombo.getSelectionModel().getSelectedItem() != null) {
+//                                        String cbv = loginCombo.getSelectionModel().getSelectedItem();
+//                                        switch (cbv) {
+//                                            case "Others":
+//                                try {
+//                                                //Connection con2 = connectionPool.getConnection();
+//                                                ResultSet rs5 = con2.prepareStatement("select sum(case when time_called IS NULL and tag = '" + othersTag + "' then 1 else 0 end) as count_num from tickets where t_date='" + local_date + "'").executeQuery();
+//                                                ResultSet rs5b = con2.prepareStatement("select sum(case when time_called IS NULL and trans_to = '" + othersTag + "' then 1 else 0 end) as count_num from transfer where t_date='" + local_date + "'").executeQuery();
+//                                                int ppline = 0;
+//                                                int pplineb = 0;
+//                                                while (rs5.next() && rs5b.next()) {
+//                                                    ppline = rs5.getInt("count_num");
+//                                                    pplineb = rs5b.getInt("count_num");
+//                                                    if ("" + ppline == null) {
+//                                                        ppline = 0;
+//                                                        otherNoInline.setText("" + ppline);
+//                                                    }else if ("" + pplineb == null) pplineb = 0;
+//                                                     else if ("" + pplineb != null) ppline = (ppline + pplineb);
+//                                                    otherNoInline.setText("" + ppline);
+//                                                }
+//                                                
+//                                                int notifCount = ppline + pplineb;
+//                                                if (notifCount > 0) flag1 = true;
+//                                                if (notifCount == 0 && flag1) flag2 = true;
+//                                                if (flag1 && flag2 && notifCount > 0) {
+//                                                    createAlertWhenThereIsATkt();
+//                                                    flag1 = false;
+//                                                    flag2 = false;
+//                                                }
+//                                                
+//                                                PreparedStatement countTrans4 = con2.prepareStatement("select sum(case when time_called IS NULL and trans_to = '" + othersTag + "' then 1 else 0 end) as count_num_trans from transfer where t_date='" + local_date + "'");
+//                                                ResultSet rst2 = countTrans4.executeQuery();
+//                                                while (rst2.next()) {
+//                                                    String noTrans = rst2.getString("count_num_trans");
+//                                                    otherTranferNoLabel.setText(noTrans);
+//                                                }
+//                                            } catch (NumberFormatException | SQLException e) {
+//                                                e.printStackTrace();
+//                                            }
+//                                            break;
+//                                            case "Current Customer":
+//                                try {
+//                                                //Connection con2 = connectionPool.getConnection();
+//                                                ResultSet rs5 = con2.prepareStatement("select sum(case when time_called IS NULL and tag = '" + currentCusTag + "' then 1 else 0 end) as count_num from tickets where t_date='" + local_date + "'").executeQuery();
+//                                                ResultSet rs5b = con2.prepareStatement("select sum(case when time_called IS NULL and trans_to = '" + currentCusTag + "' then 1 else 0 end) as count_num from transfer where t_date='" + local_date + "'").executeQuery();
+//                                                while (rs5.next() && rs5b.next()) {
+//                                                    String ppline = rs5.getString("count_num");
+//                                                    String pplineb = rs5b.getString("count_num");
+//                                                    if (ppline == null) {
+//                                                        ppline = String.valueOf(0);
+//                                                        pline = ppline;
+//                                                        currentCusNoInline.setText(ppline);
+//                                                    } else {
+//                                                        if (pplineb != null) {
+//                                                            ppline = String.valueOf(Integer.valueOf(ppline) + Integer.valueOf(pplineb));
+//                                                            pline = ppline;
+//                                                        }
+//                                                        currentCusNoInline.setText(ppline);
+//                                                    }
+//                                                }
+//                                                ResultSet rst2 = con2.prepareStatement("select sum(case when time_called IS NULL and trans_to = '" + currentCusTag + "' then 1 else 0 end) as count_num_trans from transfer where t_date='" + local_date + "'").executeQuery();
+//                                                while (rst2.next()) {
+//                                                    String noTrans = rst2.getString("count_num_trans");
+//                                                    trans = noTrans;
+//                                                    currentCustomerTranferNoLabel.setText(noTrans);
+//                                                }
+//                                            } catch (NumberFormatException | SQLException e) {
+//                                                e.printStackTrace();
+//                                            }
+//                                            break;
+//                                            case "New Customer":
+//                                try {
+//                                                //Connection con2 = connectionPool.getConnection();
+//                                                PreparedStatement countInLine = con2.prepareStatement("select sum(case when time_called IS NULL and tag = '" + newCusTag + "' then 1 else 0 end) as count_num from tickets where t_date='" + local_date + "'");
+//                                                PreparedStatement countInLineb = con2.prepareStatement("select sum(case when time_called IS NULL and trans_to = '" + newCusTag + "' then 1 else 0 end) as count_num from transfer where t_date='" + local_date + "'");
+//                                                ResultSet rs5 = countInLine.executeQuery();
+//                                                ResultSet rs5b = countInLineb.executeQuery();
+//                                                while (rs5.next() && rs5b.next()) {
+//                                                    String ppline = rs5.getString("count_num");
+//                                                    String pplineb = rs5b.getString("count_num");
+//                                                    if (ppline == null) {
+//                                                        ppline = String.valueOf(0);
+//                                                        newCusNoInline.setText(ppline);
+//                                                    } else {
+//                                                        if (pplineb != null) {
+//                                                            ppline = String.valueOf(Integer.valueOf(ppline) + Integer.valueOf(pplineb));
+//                                                        }
+//                                                        newCusNoInline.setText(ppline);
+//                                                    }
+//                                                }
+//                                                PreparedStatement countTrans4 = con2.prepareStatement("select sum(case when time_called IS NULL and trans_to = '" + newCusTag + "' then 1 else 0 end) as count_num_trans from transfer where t_date='" + local_date + "'");
+//                                                ResultSet rst2 = countTrans4.executeQuery();
+//                                                while (rst2.next()) {
+//                                                    String noTrans = rst2.getString("count_num_trans");
+//                                                    newCustomerTranferNoLabel.setText(noTrans);
+//                                                }
+//                                            } catch (NumberFormatException | SQLException e) {
+//                                                e.printStackTrace();
+//                                            }
+//                                            break;
+//                                            case "Services":
+//                                try {
+//                                                //Connection con2 = connectionPool.getConnection();
+//                                                PreparedStatement countInLine = con2.prepareStatement("select sum(case when time_called IS NULL and tag = '" + serviceTag + "' then 1 else 0 end) as count_num from tickets where t_date='" + local_date + "'");
+//                                                PreparedStatement countInLineb = con2.prepareStatement("select sum(case when time_called IS NULL and trans_to = '" + serviceTag + "' then 1 else 0 end) as count_num from transfer where t_date='" + local_date + "'");
+//                                                ResultSet rs5 = countInLine.executeQuery();
+//                                                ResultSet rs5b = countInLineb.executeQuery();
+//                                                while (rs5.next() && rs5b.next()) {
+//                                                    String ppline = rs5.getString("count_num");
+//                                                    String pplineb = rs5b.getString("count_num");
+//                                                    if (ppline == null) {
+//                                                        ppline = String.valueOf(0);
+//                                                        servicesNoInline.setText(ppline);
+//                                                    } else {
+//                                                        if (pplineb != null) {
+//                                                            ppline = String.valueOf(Integer.valueOf(ppline) + Integer.valueOf(pplineb));
+//                                                        }
+//                                                        servicesNoInline.setText(ppline);
+//                                                    }
+//                                                }
+//                                                PreparedStatement countTrans4 = con2.prepareStatement("select sum(case when time_called IS NULL and trans_to = '" + serviceTag + "' then 1 else 0 end) as count_num_trans from transfer where t_date='" + local_date + "'");
+//                                                ResultSet rst2 = countTrans4.executeQuery();
+//                                                while (rst2.next()) {
+//                                                    String noTrans = rst2.getString("count_num_trans");
+//                                                    servicesTranferNoLabel.setText(noTrans);
+//                                                }
+//                                            } catch (NumberFormatException | SQLException e) {
+//                                                e.printStackTrace();
+//                                            }
+//                                            break;
+//                                            case "Business Customers":
+//
+//                                                break;
+//                                        }
+                        //         }
+                                 
+                                try {
+                                    Thread.sleep(1000);
+                                } catch (InterruptedException ex) {
+                                    Logger.getLogger(FXMLController.class.getName()).log(Level.SEVERE, null, ex);
+                                }
+  
                         }
                         //pool.releaseConnection(con2);
-                        return null;
-
+                        //return null;
                     }
                 };
-                new Thread(task).start();
-            }
+                Thread t = new Thread(task);
+                t.setDaemon(true);
+                t.start();
 
         });
     }

@@ -12,8 +12,13 @@ import java.util.List;
  * @author ABDULRAHMAN ILLO
  */
 public interface DAOInterface {
-    
     public List<Service> listServices();
+    public void unlockService(String sno);
     public List<Staff> listStaff();
-    
+    public List<QueueServices> listQueueServices();
+    public List<QueueServices> listQueueServicesWithServiceNO(String s_no);
+    public List<String> getServicesForLevel(String level);
+    public List<StaffLevel> listAllStaffLevel();
+    public ControlView getControlView(List<ControlView> l, String get);
+    public List<ControlView> listControlViewForAllServices();
 }

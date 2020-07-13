@@ -22,7 +22,7 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane id="AnchorPane" fx:id="containerPane" prefHeight="389.0" prefWidth="600.0" style="-fx-background-color: #2E315B;" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.queuedeck.controllers.FXMLController">
+<AnchorPane fx:id="containerPane" prefHeight="389.0" prefWidth="600.0" style="-fx-background-color: #2E315B;" stylesheets="@../styles/Style-Default.css" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.queuedeck.controllers.FXMLController">
    <children>
       <StackPane fx:id="cardsStackPane" layoutX="-4.0" prefHeight="389.0" prefWidth="615.0" AnchorPane.bottomAnchor="23.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <children>
@@ -78,7 +78,7 @@
                      <font>
                         <Font size="21.0" />
                      </font></Label>
-                  <ListView fx:id="newCusAllListView" blendMode="SCREEN" layoutX="146.0" layoutY="102.0" prefHeight="95.0" prefWidth="165.0" />
+                  <ListView fx:id="newCusAllListView" layoutX="146.0" layoutY="102.0" prefHeight="95.0" prefWidth="165.0" />
                   <ImageView fitHeight="50.0" fitWidth="50.0" layoutX="330.0" layoutY="100.0" pickOnBounds="true" preserveRatio="true">
                      <image>
                         <Image url="@../img/icons8-exchange-802.png" />
@@ -145,7 +145,7 @@
                         <Font size="25.0" />
                      </font>
                   </Label>
-                  <ListView fx:id="otherAllListView" blendMode="SCREEN" layoutX="146.0" layoutY="102.0" prefHeight="95.0" prefWidth="165.0" />
+                  <ListView fx:id="otherAllListView" layoutX="146.0" layoutY="102.0" prefHeight="95.0" prefWidth="165.0" />
                   <ImageView fitHeight="50.0" fitWidth="50.0" layoutX="330.0" layoutY="100.0" pickOnBounds="true" preserveRatio="true">
                      <image>
                         <Image url="@../img/icons8-exchange-802.png" />
@@ -207,7 +207,7 @@
                         <Image url="@../img/currentservingticket.png" />
                      </image>
                   </ImageView>
-                  <ListView fx:id="servicesAllListView" blendMode="SCREEN" layoutX="146.0" layoutY="102.0" prefHeight="95.0" prefWidth="165.0" />
+                  <ListView fx:id="servicesAllListView" layoutX="146.0" layoutY="102.0" prefHeight="95.0" prefWidth="165.0" />
                   <ImageView fitHeight="50.0" fitWidth="50.0" layoutX="330.0" layoutY="100.0" pickOnBounds="true" preserveRatio="true">
                      <image>
                         <Image url="@../img/icons8-exchange-802.png" />
@@ -311,7 +311,7 @@
                         <Font size="80.0" />
                      </font>
                   </Label>
-                  <ListView fx:id="currentCusAllListView" blendMode="SCREEN" layoutX="146.0" layoutY="102.0" prefHeight="95.0" prefWidth="165.0" />
+                  <ListView fx:id="currentCusAllListView" layoutX="146.0" layoutY="102.0" prefHeight="95.0" prefWidth="165.0" />
                   <Label fx:id="currentCustomerTranferNoLabel" alignment="CENTER" layoutX="330.0" layoutY="160.0" prefHeight="32.0" prefWidth="40.0" text="0" textAlignment="CENTER" textFill="WHITE">
                      <font>
                         <Font size="21.0" />
@@ -359,7 +359,7 @@
                   <MenuItem mnemonicParsing="false" onAction="#logoutMenuActionPerformed" text="Logout" />
                </items>
             </Menu>
-            <Menu mnemonicParsing="false" text="Change Service">
+            <Menu fx:id="changeServiceMenu" mnemonicParsing="false" text="Change Service">
                <items>
                   <MenuItem fx:id="currentCusMenuItem" mnemonicParsing="false" onAction="#currentCusMenuClicked" text="Current Customer" />
                   <MenuItem fx:id="newCusMenuItem" mnemonicParsing="false" onAction="#newCusMenuClicked" text="New Customer" />
