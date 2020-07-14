@@ -132,7 +132,6 @@ public class ControlView extends AnchorPane{
         transferIcon.setFitWidth(50);
         transferIcon.setPreserveRatio(true);
         
-        
         ticketIcon.setPreserveRatio(true);
         ticketIcon.setSmooth(true);
         ticketIcon.setFitHeight(160);
@@ -156,6 +155,7 @@ public class ControlView extends AnchorPane{
         serviceName.setId("title");
         
         noInlineLabel.setAlignment(Pos.CENTER);
+        noInlineLabel.setFont(new Font(20));
         noInlineLabel.setTextFill(Paint.valueOf("white"));
         serviceName.setAlignment(Pos.CENTER);
         allLabel.setTextAlignment(TextAlignment.CENTER);
@@ -212,9 +212,7 @@ public class ControlView extends AnchorPane{
         layoutVBox.setPadding(new Insets(60, 5, 5, 5));
         layoutVBox.setPrefSize(600, 360);
         
-        this.getChildren().addAll(noInlineLabel, serviceName,autoCB,layoutVBox);
-        this.getChildren().addAll(ticketIcon,currentlySerVingLabel);
-        //layoutVBox.setBackground(new Background(new BackgroundFill(Paint.valueOf("blue"), CornerRadii.EMPTY, Insets.EMPTY)));
+        this.getChildren().addAll(noInlineLabel, serviceName,autoCB,layoutVBox,ticketIcon,currentlySerVingLabel);
         this.getStylesheets().clear();
         this.getStylesheets().add("/styles/Style-Default.css");
         this.getStyleClass().clear();

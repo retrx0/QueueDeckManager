@@ -643,31 +643,34 @@ public class FXMLController implements Initializable {
                         shake(loginActionLabel);
                         loginActionLabel.setText("Incorrect Staff No or Password");
                     } else {
-                        PreparedStatement get_pswd = con.prepareStatement("select password, count(*), online, staff_name, counter, staff_level from staff where staff_no = '" + staffNoTextField.getText() + "'");
-                        PreparedStatement get_tags = con.prepareStatement("select s_no, service from services");
-                        ResultSet gp = get_pswd.executeQuery();
-                        ResultSet cp = con.prepareStatement("select md5('" + passwordTextField.getText() + "') as password").executeQuery();
-                        ResultSet gt = get_tags.executeQuery();
-                        StaffLevel sl = new StaffLevel();
+//                        PreparedStatement get_pswd = con.prepareStatement("select password, count(*), online, staff_name, counter, staff_level from staff where staff_no = '" + staffNoTextField.getText() + "'");
+//                        PreparedStatement get_tags = con.prepareStatement("select s_no, service from services");
+//                        ResultSet gp = get_pswd.executeQuery();
+//                        
+//                        ResultSet gt = get_tags.executeQuery();
+//                        StaffLevel sl = new StaffLevel();
+                        
                         String passwordTextFieldinmd5 = null;
+                        ResultSet cp = con.prepareStatement("select md5('" + passwordTextField.getText() + "') as password").executeQuery();
                         while(cp.next()){ passwordTextFieldinmd5 = cp.getString("password");}
-                        while (gt.next()) {
-                            String services = gt.getString("service");
-                            switch (services) {
-                                case "Current Customer":
-                                    currentCusTag = gt.getString("s_no");
-                                    break;
-                                case "New Customer":
-                                    newCusTag = gt.getString("s_no");
-                                    break;
-                                case "Services":
-                                    serviceTag = gt.getString("s_no");
-                                    break;
-                                case "Others":
-                                    othersTag = gt.getString("s_no");
-                                    break;
-                            }
-                        }
+                        
+//                        while (gt.next()) {
+//                            String services = gt.getString("service");
+//                            switch (services) {
+//                                case "Current Customer":
+//                                    currentCusTag = gt.getString("s_no");
+//                                    break;
+//                                case "New Customer":
+//                                    newCusTag = gt.getString("s_no");
+//                                    break;
+//                                case "Services":
+//                                    serviceTag = gt.getString("s_no");
+//                                    break;
+//                                case "Others":
+//                                    othersTag = gt.getString("s_no");
+//                                    break;
+//                            }
+//                        }
                         for(int i=0;i<staffList.size();i++){
                             if(staffList.get(i).getStaffNo().equals(staffNoTextField.getText())){
                                 staff_level = ""+staffList.get(i).getStaffLevel();
@@ -690,18 +693,12 @@ public class FXMLController implements Initializable {
                                     List<String> l = d.getServicesForLevel(staff_level);
                                     for (int m = 0; m < changeServiceMenu.getItems().size(); m++) {
                                         changeServiceMenu.getItems().get(m).setDisable(true);
-                                        //if(m<=l.size()){
-                                            if(l.contains(changeServiceMenu.getItems().get(m).getText()))
-                                                changeServiceMenu.getItems().get(m).setDisable(false);
-                                        //}
+                                        if(l.contains(changeServiceMenu.getItems().get(m).getText()))
+                                            changeServiceMenu.getItems().get(m).setDisable(false);
                                         if(changeServiceMenu.getItems().get(m).getText().equals(loginCombo.getSelectionModel().getSelectedItem()))
                                             item = changeServiceMenu.getItems().get(m);
                                     }
                                     for (int j = 0; j < l.size(); j++) {
-                                        //if(l.contains(item.getText()))
-                                           // item.setDisable(false);
-                                        //System.out.println(item.getText());
-                                        //System.out.println(l.get(j));
                                         node = currentCustomerNode;
                                     
                                         if(loginCombo.getSelectionModel().getSelectedItem() != null){
@@ -717,7 +714,6 @@ public class FXMLController implements Initializable {
                                                     if(staffNoTextField.getText().equals(staffList.get(k).getStaffNo()))
                                                         loggedInStaff = staffList.get(k);
                                                 }
-                                                System.out.println(loggedInStaff);
                                                 loggedInAsLabel.setText("[" + staffNoTextField.getText() + "] " + loggedInStaff.getStaffName() + "");
                                                 counterLabel.setText("serving counter: " + loggedInStaff.getCounter() + "");
                                                 showMissedTickets(currentCusMissedNoLabel, currentCusTag);
@@ -1027,59 +1023,17 @@ public class FXMLController implements Initializable {
     }
 
     public void changeServicePerformAction(String itemToSelect, Node nodeToShow) {
-        try {
-            loginCombo.getSelectionModel().select(itemToSelect);
-            String selecteditem = loginCombo.getSelectionModel().getSelectedItem();
-            doFadeInUpTransition(cardsStackPane, nodeToShow);
-            Connection con = pool.getConnection();
-            ResultSet gs = con.prepareStatement("Select service from staff_level where level_id = '" + staff_level + "'").executeQuery();
-            List ls = d.getServicesForLevel(staff_level);
-            
-            for (int i = 0; i < ls.size(); i++) {
-                if(selecteditem.equals(ls.get(i)))
-                    changeServiceMenu.getItems().get(i).setDisable(true);
-                else
-                    changeServiceMenu.getItems().get(i).setDisable(false);
+        loginCombo.getSelectionModel().select(itemToSelect);
+        String selecteditem = loginCombo.getSelectionModel().getSelectedItem();
+        doFadeIn(cardsStackPane, nodeToShow);
+        List ls = d.getServicesForLevel(staff_level);
+        for (int i = 0; i < changeServiceMenu.getItems().size(); i++) {
+            if (ls.contains(changeServiceMenu.getItems().get(i).getText())) {
+                changeServiceMenu.getItems().get(i).setDisable(false);
             }
-//            while (gs.next()) {
-//                String services = gs.getString("service");
-//                switch (services) {
-//                    case "Current Customer":
-//                        if (!selecteditem.equals("Current Customer")) {
-//                            currentCusMenuItem.setDisable(false);
-//                        } else {
-//                            currentCusMenuItem.setDisable(true);
-//                        }
-//                        break;
-//                    case "Services":
-//                        //servicesMenuItem.setEnabled(true);
-//                        if (!selecteditem.equals("Services")) {
-//                            servicesMenuItem.setDisable(false);
-//                        } else {
-//                            servicesMenuItem.setDisable(true);
-//                        }
-//                        break;
-//                    case "New Customer":
-//                        //newCusMenuItem.setEnabled(true);
-//                        if (!selecteditem.equals("New Customer")) {
-//                            newCusMenuItem.setDisable(false);
-//                        } else {
-//                            newCusMenuItem.setDisable(true);
-//                        }
-//                        break;
-//                    case "Others":
-//                        //otherMenuItem.setEnabled(true);
-//                        if (!selecteditem.equals("Others")) {
-//                            otherMenuItem.setDisable(false);
-//                        } else {
-//                            otherMenuItem.setDisable(true);
-//                        }
-//                        break;
-//                }
-//            }
-            pool.releaseConnection(con);
-        } catch (SQLException ex) {
-            ex.printStackTrace();
+            if (changeServiceMenu.getItems().get(i).getText().equals(selecteditem)) {
+                changeServiceMenu.getItems().get(i).setDisable(true);
+            }
         }
     }
 
@@ -1838,7 +1792,6 @@ public class FXMLController implements Initializable {
     int oCurrentNotif;
     boolean flag1 = false;
     boolean flag2 = false;
-    Boolean visible = false;
     String pline, trans;
 
     @Override
@@ -1850,14 +1803,12 @@ public class FXMLController implements Initializable {
             MenuItem mi = new MenuItem(servList.get(i).getServiceName());
             changeServiceMenu.getItems().add(i, mi);
             ControlView cv = new ControlView(servList.get(i));
+            String sel = servList.get(i).getServiceName();
             paneList.add(cv);
             mi.setOnAction((t) -> {
-                //changeServicePerformAction("", currentCustomerNode);
-                currentCusMenuClicked();
+                changeServicePerformAction(sel, cv);
             });
         }
-        
-        //loginCombo.getItems().addAll("Current Customer", "Services", "New Customer", "Others");
         menuBar.setVisible(false);
         showNode(cardsStackPane, loginNode);
         
@@ -1868,10 +1819,8 @@ public class FXMLController implements Initializable {
             
             containerPane.getScene().getWindow().setOnCloseRequest((t) -> {
                 close();
-                visible = false;
-            });
-//            visible = containerPane.getScene().getWindow().isShowing();
 
+            });
                 Task task = new Task() {
                     @Override
                     protected Object call() throws Exception {
@@ -1879,9 +1828,8 @@ public class FXMLController implements Initializable {
                         while (true) {
                             Platform.runLater(() -> {
                                 
-//                            if(visible == false) break;
                                 //LocalTime local_time = LocalTime.parse(String.valueOf(LocalTime.now().getHour()) + ":" + String.valueOf(LocalTime.now().getMinute()) + ":" + "00");
-                                LocalTime localTime = LocalTime.parse(String.valueOf(LocalTime.now()).substring(0, 2) + ":" + String.valueOf(LocalTime.now()).substring(3, 5) + ":" + "00");
+                                LocalTime localTime = LocalTime.parse(changeStringFormat(String.valueOf(LocalTime.now()).substring(0, 2)) + ":" + String.valueOf(LocalTime.now()).substring(3, 5) + ":" + "00");
                                 try {
                                     Statement stmt = con2.createStatement();
                                     servList = d.listServices();
