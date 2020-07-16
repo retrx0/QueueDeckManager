@@ -53,7 +53,7 @@ public class MainApp extends Application {
 //                    for (int i = 0; i < servList.size(); i++) {
 //                        if (servList.get(i).getUnlockTime() != null) {
 //                            LocalTime unlockTime = LocalTime.parse(servList.get(i).getUnlockTime());
-//                            System.out.println("unlockt");
+//                            System.out.println("unlockt in main");
 //                            if (unlockTime.equals(localTime)) {
 //                                paneList.get(i).lock.setSelected(false);
 //                                paneList.get(i).lock.setText("Lock");
@@ -70,10 +70,10 @@ public class MainApp extends Application {
 //                    System.out.println(s);
 //                }
 //            };
-//            
+//            Platform.runLater(updater);
 //            while (true) {
 //                try {
-//                    Platform.runLater(updater);
+//                    
 //                    Thread.sleep(1000);
 //                } catch (InterruptedException ex) {
 //                    Logger.getLogger(MainApp.class.getName()).log(Level.SEVERE, null, ex);
