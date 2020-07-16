@@ -5,9 +5,23 @@
  */
 package com.queuedeck.models;
 
+import com.jfoenix.animation.alert.JFXAlertAnimation;
+import com.jfoenix.controls.JFXAlert;
+import com.jfoenix.controls.JFXButton;
+import com.jfoenix.controls.JFXCheckBox;
+import com.jfoenix.controls.JFXComboBox;
+import com.jfoenix.controls.JFXDialog;
+import com.jfoenix.controls.JFXDialogLayout;
+import com.jfoenix.controls.JFXTimePicker;
+import com.jfoenix.controls.JFXToggleButton;
 import com.queuedeck.controllers.FXMLController;
 import static com.queuedeck.controllers.FXMLController.pool;
 import com.queuedeck.effects.FlashTransition;
+import de.jensd.fx.glyphs.GlyphIcon;
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView;
+import de.jensd.fx.glyphs.materialicons.MaterialIcon;
+import de.jensd.fx.glyphs.materialicons.MaterialIconView;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -44,11 +58,15 @@ import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Paint;
 import javafx.scene.text.Font;
 import javafx.scene.text.TextAlignment;
+import javafx.stage.Modality;
 import javafx.util.Pair;
+import javafx.util.StringConverter;
+
 
 /**
  *
@@ -59,7 +77,7 @@ public class ControlView extends AnchorPane{
     String name;
     Ticket ticket;
     Service service;
-
+    
     String local_date = LocalDate.now().toString();
 
     public ControlView() {
@@ -85,15 +103,14 @@ public class ControlView extends AnchorPane{
     String tkt;
     DAOInterface d = new JPAClass();
     
-    Button noShow = new Button("No Show");
-    Button next = new Button("Next");
-    Button transfer = new Button("Transfer");
-    Button done = new Button("Done");
-    Button callMissed = new Button("Call Missed");
-    Button callTrans = new Button("Call Trans");
-    Button callAgain = new Button("Call Again");
-    public ToggleButton lock = new ToggleButton("Lock");
-    Button b = new Button("b");
+    JFXButton noShow = new JFXButton("No Show");
+    JFXButton next = new JFXButton("Next");
+    JFXButton transfer = new JFXButton("Transfer");
+    JFXButton done = new JFXButton("Done");
+    JFXButton callMissed = new JFXButton("Call Missed");
+    JFXButton callTrans = new JFXButton("Call Trans");
+    JFXButton callAgain = new JFXButton("Call Again");
+    public JFXToggleButton lock = new JFXToggleButton();
     
     Label missedLabel = new Label("Missed");
     Label missedCounterLabel = new Label("0");
@@ -102,15 +119,15 @@ public class ControlView extends AnchorPane{
     public Label transferCounterLabel = new Label("0");
     Label currentlySerVingLabel = new Label("");
     Label serviceName = new Label();
-    public Label noInlineLabel = new Label("33",new ImageView("/img/icons8-queue-32.png"));
+    public Label noInlineLabel = new Label("",new ImageView("/img/icons8-queue-32.png"));
     
     ImageView missedIcon  = new ImageView("/img/170-512.png");
     ImageView transferIcon  = new ImageView("/img/icons8-exchange-802.png");
     ImageView ticketIcon = new ImageView("/img/currentservingticket.png");
 
-    CheckBox autoCB= new CheckBox("Auto Call Transfered");
+    JFXCheckBox autoCb = new JFXCheckBox("Auto Call Transfered");
     
-    ListView lv = new ListView();
+    public ListView lv = new ListView();
      
     private void init(){
         
@@ -121,8 +138,7 @@ public class ControlView extends AnchorPane{
         callAgain.setPrefSize(100, 50);
         callMissed.setPrefSize(100, 50);
         callTrans.setPrefSize(100, 50);
-        lock.setPrefSize(100, 50);
-        b.setPrefSize(100, 50);
+        lock.setPrefSize(100, 30);
         
         missedIcon.setPreserveRatio(true);
         missedIcon.setSmooth(true);
@@ -134,15 +150,15 @@ public class ControlView extends AnchorPane{
         
         ticketIcon.setPreserveRatio(true);
         ticketIcon.setSmooth(true);
-        ticketIcon.setFitHeight(160);
-        ticketIcon.setFitWidth(200);
+        ticketIcon.setFitHeight(140);
+        ticketIcon.setFitWidth(180);
         ticketIcon.setLayoutX(390);
         ticketIcon.setLayoutY(70);
         ticketIcon.relocate(415, 55);
         
         currentlySerVingLabel.setAlignment(Pos.CENTER);
         currentlySerVingLabel.relocate(415, 60);
-        currentlySerVingLabel.setPrefSize(200, 160);
+        currentlySerVingLabel.setPrefSize(180, 140);
         currentlySerVingLabel.setTextAlignment(TextAlignment.CENTER);
         currentlySerVingLabel.setFont(Font.font(50));
         currentlySerVingLabel.setId("tlable");
@@ -161,21 +177,21 @@ public class ControlView extends AnchorPane{
         allLabel.setTextAlignment(TextAlignment.CENTER);
         missedLabel.setTextAlignment(TextAlignment.CENTER);
         transLabel.setTextAlignment(TextAlignment.CENTER);
-        
-        autoCB.setTextFill(Paint.valueOf("white"));
-        autoCB.setAlignment(Pos.CENTER);
-        autoCB.setSelected(true);
-        autoCB.setManaged(true);
                 
         lv.setPrefSize(165, 95);
         lv.setLayoutX(146);
         lv.setLayoutY(102);
         
+        lock.setText("Lock");
+        lock.setTextFill(Paint.valueOf("white"));
+        lock.setWrapText(true);
+        
         noInlineLabel.relocate(10, 30);
         serviceName.relocate(150, 30);
-        autoCB.relocate(450, 30);
-        Region r = new Region();
-        r.setPrefSize(130, 50);
+        
+        autoCb.relocate(430, 360);
+        autoCb.setTextFill(Paint.valueOf("white"));
+        autoCb.setSelected(true);
         //HBox hb1 = new HBox(30, noInlineLabel,r,serviceName,autoCB);
         
 //        HBox shb1 = new HBox(40, missedLabel,allLabel,transLabel);
@@ -212,19 +228,13 @@ public class ControlView extends AnchorPane{
         layoutVBox.setPadding(new Insets(60, 5, 5, 5));
         layoutVBox.setPrefSize(600, 360);
         
-        this.getChildren().addAll(noInlineLabel, serviceName,autoCB,layoutVBox,ticketIcon,currentlySerVingLabel);
+        this.getChildren().addAll(noInlineLabel, serviceName,autoCb,layoutVBox,ticketIcon,currentlySerVingLabel);
         this.getStylesheets().clear();
         this.getStylesheets().add("/styles/Style-Default.css");
         this.getStyleClass().clear();
         this.getStyleClass().add("control-view-pane");
         
         //OnActions
-        autoCB.setOnAction((t) -> {
-           if(autoCB.isSelected())
-               autoCB.setSelected(false);
-           else
-               autoCB.setSelected(true);
-        });
         
         done.setOnAction((t) -> {
             doneButtonPerformAction(lv, this.service.getServiceNo());
@@ -234,7 +244,7 @@ public class ControlView extends AnchorPane{
         });
         
         next.setOnAction((t) -> {
-           nextButtonActionToPerform(lv, autoCB, currentlySerVingLabel, this.service.getServiceNo());
+           nextButtonActionToPerform(lv, autoCb, currentlySerVingLabel, this.service.getServiceNo());
         });
         
         noShow.setOnAction((t) -> {
@@ -268,11 +278,56 @@ public class ControlView extends AnchorPane{
     }
     
     void createAlert(Alert.AlertType alertType, String title, String contextText, String headerText) {
-        Alert alert = new Alert(alertType);
-        alert.setTitle(title);
-        alert.setHeaderText(headerText);
-        alert.setContentText(contextText);
-        alert.showAndWait();
+//        Alert alert = new Alert(alertType);
+//        alert.setTitle(title);
+//        alert.setHeaderText(headerText);
+//        alert.setContentText(contextText);
+//        alert.showAndWait();
+        
+        JFXAlert al  = new JFXAlert();
+        al.initModality(Modality.APPLICATION_MODAL);
+        al.setOverlayClose(false);
+        al.setAnimation(JFXAlertAnimation.NO_ANIMATION);
+        
+//        switch(alertType){
+//            case CONFIRMATION:
+//                al.setGraphic(new FontAwesomeIconView(FontAwesomeIcon.CHECK_CIRCLE));
+//                break;
+//            case ERROR:
+//                al.setGraphic(new FontAwesomeIconView(FontAwesomeIcon.CLOSE));
+//                break;
+//            case WARNING:
+//                al.setGraphic(new FontAwesomeIconView(FontAwesomeIcon.WARNING));
+//        }
+        
+        Label ct = new Label(contextText);
+        ct.setStyle("-fx-text-fill: #2E315B");
+        Label h = new Label(headerText);
+        h.setStyle("-fx-text-fill: #2E315B");
+        
+        VBox vb= new VBox(15, h,ct);
+        
+        JFXButton doneBtn =  new JFXButton("OK");
+        doneBtn.setDefaultButton(true);
+        doneBtn.setPrefSize(50, 25);
+        
+        JFXDialogLayout lay = new JFXDialogLayout();
+        lay.setHeading(h);
+        lay.setBody(ct);
+        lay.setActions(doneBtn);
+        
+//        al.setTitle(title);
+//        al.setContent(lay);
+////        al.setContentText(contextText);
+//        al.show();
+        
+        JFXDialog di =new JFXDialog((StackPane)this.getParent(), lay, JFXDialog.DialogTransition.LEFT);
+        
+        doneBtn.setOnAction((t) -> {
+           di.close();
+        });
+        
+        di.show();
     }
     
     public void nextButtonActionToPerform(ListView allListVIew, CheckBox autoTransferCB, Label currentlyServingLabel, String tag) {
@@ -356,10 +411,10 @@ public class ControlView extends AnchorPane{
                     callTicketToDisplay(tkt);
                     stmt.executeUpdate("update tickets set locked = null, staff_no = null where time_called is null and locked is not null and missing_client is null and staff_no = '" + FXMLController.loggedInStaff.getStaffNo() + "' and tag='" + tag + "' and t_date='" + local_date + "' limit 1");
                 } else {
-                    createAlert(Alert.AlertType.WARNING, "Empty Queue", "Check auto call transfer box to call transfered ticket automatically", null);
+                    createAlert(Alert.AlertType.WARNING, "Empty Queue", "Check auto call transfer box to call transfered ticket automatically", "No more ticket on queue");
                 }
             } else {
-                createAlert(Alert.AlertType.WARNING, "Empty Queue", "Queue is empty", null);
+                createAlert(Alert.AlertType.WARNING, "Empty Queue", "Queue is empty", "Empty Queue");
             }
             pool.releaseConnection(con);
         } catch (NumberFormatException | SQLException e) {
@@ -395,7 +450,7 @@ public class ControlView extends AnchorPane{
                                 missedNoLabel.setText(value);
                             }
                         } else {
-                            createAlert(Alert.AlertType.WARNING, "Error", "Ticket cannot be added to missed queue", null);
+                            createAlert(Alert.AlertType.WARNING, "Error", "Ticket cannot be added to missed queue", "Ticket Error");
                         }
                     }
                     pool.releaseConnection(con);
@@ -403,39 +458,47 @@ public class ControlView extends AnchorPane{
                     e.printStackTrace();
                 }
             } else {
-                createAlert(Alert.AlertType.WARNING, "Empty queue", "Queue is empty", null);
+                createAlert(Alert.AlertType.WARNING, "Empty queue", "Queue is empty", "Empty queue");
             }
         } else {
-            createAlert(Alert.AlertType.WARNING, "Error calling ticket", "No ticket called", null);
+            createAlert(Alert.AlertType.WARNING, "Error calling ticket", "No ticket called", "Ticket Error");
         }
     }
     
     Optional<Pair<String, String>> transferChoiseDialogWithServices() {
-
-        Dialog<Pair<String, String>> dialog = new Dialog<>();
-        dialog.setTitle("Transfer Ticket");
-        dialog.setHeaderText("Select queue and service to transfer to");
-        dialog.setGraphic(new ImageView(this.getClass().getResource("/img/icons8-exchange-802.png").toString()));
-        ButtonType done = new ButtonType("Transfer", ButtonData.OK_DONE);
-        dialog.getDialogPane().getButtonTypes().addAll(done, ButtonType.CANCEL);
-
-        GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(10);
-        grid.setPadding(new Insets(20, 200, 10, 10));
-
-        ComboBox queueSelection = new ComboBox();
-        ComboBox servicesSelction = new ComboBox();
-
-        grid.add(queueSelection, 1, 0);
-        grid.add(servicesSelction, 1, 1);
-        dialog.getDialogPane().setContent(grid);
+        
+        Label h  = new Label("Transfer Ticket");
+        h.setStyle("-fx-text-fill: #2E315B");
+        
+        JFXComboBox queueSelection = new JFXComboBox();
+        JFXComboBox servicesSelction = new JFXComboBox();
+        queueSelection.setLabelFloat(true);servicesSelction.setLabelFloat(true);
+        
+        
+////        Dialog<Pair<String, String>> dialog = new Dialog<>();
+////        dialog.setTitle("Transfer Ticket");
+////        dialog.setHeaderText("Select queue and service to transfer to");
+////        dialog.setGraphic(new ImageView(this.getClass().getResource("/img/icons8-exchange-802.png").toString()));
+////        ButtonType done = new ButtonType("Transfer", ButtonData.OK_DONE);
+////        dialog.getDialogPane().getButtonTypes().addAll(done, ButtonType.CANCEL);
+////
+////        GridPane grid = new GridPane();
+////        grid.setHgap(10);
+////        grid.setVgap(10);
+////        grid.setPadding(new Insets(20, 200, 10, 10));
+////
+//////        ComboBox queueSelection = new ComboBox();
+//////        ComboBox servicesSelction = new ComboBox();
+////
+////        grid.add(queueSelection, 1, 0);
+////        grid.add(servicesSelction, 1, 1);
+////        dialog.getDialogPane().setContent(grid);
 
         //String lcb = loginCombo.getSelectionModel().getSelectedItem();
         try {
             Connection con = pool.getConnection();
             List<String> ql = new ArrayList<>();
-            ResultSet gq = con.prepareStatement("select service from services where service != '" + "Current Customer" + "'").executeQuery();
+            ResultSet gq = con.prepareStatement("select service from services where service != '" + this.service.getServiceName() + "'").executeQuery();
             queueSelection.getItems().clear();
             while (gq.next()) {
                 String temp = gq.getString("service");
@@ -460,48 +523,108 @@ public class ControlView extends AnchorPane{
                     }
                 }
             });
-            dialog.setResultConverter(dialogButton -> {
-                if (dialogButton == done) {
-                    if (queueSelection.getSelectionModel().getSelectedItem().toString() == null) {
+//            dialog.setResultConverter(dialogButton -> {
+//                if (dialogButton == done) {
+//                    if (queueSelection.getSelectionModel().getSelectedItem().toString() == null) {
+//                        createAlert(AlertType.ERROR, "Error", "Cannot Transfer Ticket", "Please select a queue and service to transfer to");
+//                    } else {
+//                        try {
+//                            List<QueueServices> service_list = d.listQueueServices();
+//                            List<Service> queue_list = d.listServices();
+////                            ResultSet gq2 = con.prepareStatement("select service from services").executeQuery();
+////                            ResultSet gs = con.prepareStatement("select service from queue_services").executeQuery();
+////                            while (gq2.next()) {
+////                                queue_list.add(gq2.getString("service"));
+////                            }
+////                            while (gs.next()) {
+////                                service_list.add(gs.getString("service"));
+////                            }
+//                            for (int i = 0; i < queue_list.size(); i++) {
+//                                if (queueSelection.getSelectionModel().getSelectedItem().toString().equals(queue_list.get(i).getServiceName())) {
+//                                    for (int j = 0; i < service_list.size(); j++) {
+//                                        if (servicesSelction.getSelectionModel().getSelectedItem().toString().equals(service_list.get(j).getQueueServiceName())) {
+//                                            return new Pair<>(queue_list.get(i).getServiceName(), service_list.get(j).getQueueServiceName());
+//                                        }
+//                                    }
+//                                }
+//                            }
+//                            pool.releaseConnection(con);
+//                        } catch (Exception ex) {
+//                            Logger.getLogger(FXMLController.class.getName()).log(Level.SEVERE, null, ex);
+//                        }
+//                    }
+//                }
+//                if (dialogButton == ButtonType.CANCEL) {
+//
+//                }
+//                return null;
+//            });
+
+        pool.releaseConnection(con);
+
+        } catch (SQLException ex) {
+            Logger.getLogger(FXMLController.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        JFXButton trans = new JFXButton("Transfer");
+        trans.setButtonType(JFXButton.ButtonType.RAISED);
+        JFXButton cancel = new JFXButton("Cancel");
+        cancel.setCancelButton(true);
+        cancel.setButtonType(JFXButton.ButtonType.RAISED);
+        HBox hb = new HBox(10, trans,cancel);
+        hb.setAlignment(Pos.CENTER);
+        
+        VBox vb = new VBox(25,queueSelection,servicesSelction,hb);
+//        vb.getStylesheets().clear();
+//        vb.getStylesheets().add("/styles/Style-Default.css");
+        vb.setPrefSize(200, 230);
+        vb.setAlignment(Pos.CENTER);
+        
+        JFXDialogLayout lay = new JFXDialogLayout();
+        lay.setHeading(h);
+        lay.setBody(vb);
+//        lay.getStylesheets().clear();
+//        lay.getStylesheets().add("/styles/Style-Default.css");
+        
+        JFXAlert<Pair<String,String>> al = new JFXAlert<>();
+        al.setContent(vb);
+        al.setAnimation(JFXAlertAnimation.SMOOTH);
+        
+        cancel.setOnAction((t) -> {
+            al.close();
+        });
+        
+        trans.setOnAction((t) -> {
+            if (queueSelection.getSelectionModel().getSelectedItem().toString() == null) {
                         createAlert(AlertType.ERROR, "Error", "Cannot Transfer Ticket", "Please select a queue and service to transfer to");
                     } else {
                         try {
                             List<QueueServices> service_list = d.listQueueServices();
                             List<Service> queue_list = d.listServices();
-//                            ResultSet gq2 = con.prepareStatement("select service from services").executeQuery();
-//                            ResultSet gs = con.prepareStatement("select service from queue_services").executeQuery();
-//                            while (gq2.next()) {
-//                                queue_list.add(gq2.getString("service"));
-//                            }
-//                            while (gs.next()) {
-//                                service_list.add(gs.getString("service"));
-//                            }
                             for (int i = 0; i < queue_list.size(); i++) {
                                 if (queueSelection.getSelectionModel().getSelectedItem().toString().equals(queue_list.get(i).getServiceName())) {
                                     for (int j = 0; i < service_list.size(); j++) {
                                         if (servicesSelction.getSelectionModel().getSelectedItem().toString().equals(service_list.get(j).getQueueServiceName())) {
-                                            return new Pair<>(queue_list.get(i).getServiceName(), service_list.get(j).getQueueServiceName());
+                                            al.setResult(new Pair<>(queue_list.get(i).getServiceName(), service_list.get(j).getQueueServiceName()));
                                         }
                                     }
                                 }
                             }
-                            pool.releaseConnection(con);
                         } catch (Exception ex) {
                             Logger.getLogger(FXMLController.class.getName()).log(Level.SEVERE, null, ex);
                         }
                     }
-                }
-                if (dialogButton == ButtonType.CANCEL) {
-
-                }
-                return null;
-            });
-        } catch (SQLException ex) {
-            Logger.getLogger(FXMLController.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        Optional<Pair<String, String>> result = dialog.showAndWait();
+        });
         
-        return result;
+        al.setResultConverter((p) -> { 
+            return null; //To change body of generated lambdas, choose Tools | Templates.
+        });
+        
+        Optional<Pair<String,String>> res = al.showAndWait();
+        
+      //  Optional<Pair<String, String>> result = dialog.showAndWait();
+        
+        return res;
     }
     
     public void transferButtonActionToPerform(ListView allListView) {
@@ -579,7 +702,7 @@ public class ControlView extends AnchorPane{
                         callTicketToDisplay(tkt1);
                     } else {createAlert(AlertType.WARNING, "Error Calling Ticket", "Ticket cannot be called again", null);}
                 }
-            } else {createAlert(AlertType.WARNING, "Empty Queue", "Queue is empty", null);}
+            } else {createAlert(AlertType.WARNING, "Empty Queue", "Queue is empty", "Empty Queue");}
             pool.releaseConnection(con);
         } catch (SQLException e) {
             e.printStackTrace();
@@ -621,7 +744,7 @@ public class ControlView extends AnchorPane{
                     }
                 }
             } else {
-                createAlert(AlertType.WARNING, "Empty Queue", "Missed queue is empty", null);
+                createAlert(AlertType.WARNING, "Empty Queue", "Missed queue is empty", "Empty Queue");
             }
             pool.releaseConnection(con);
         } catch (SQLException e) {
@@ -646,51 +769,107 @@ public class ControlView extends AnchorPane{
                     }
                     pool.releaseConnection(connect);
                 } else {
-                    createAlert(AlertType.WARNING, "Empty Queue", "No ticket on queue", null);
+                    createAlert(AlertType.WARNING, "Empty Queue", "No ticket on queue", "Empty Queue");
                 }
             } else {
-                createAlert(AlertType.WARNING, "Empty Queue", "No ticket called", null);
+                createAlert(AlertType.WARNING, "Empty Queue", "No ticket called", "Empty Queue");
             }
         } catch (SQLException ex) {
             ex.printStackTrace();
         }
     }
-    
-    Optional<Pair<String, String>> showLockTimeSpinner(ToggleButton lockbtn) {
-        Dialog<Pair<String, String>> dialog = new Dialog<>();
-        dialog.setTitle("Lock Service");
-        dialog.setHeaderText("Set time to unlock service");
-        ButtonType lock = new ButtonType("Lock", ButtonData.OK_DONE);
-        dialog.getDialogPane().getButtonTypes().addAll(lock, ButtonType.CANCEL);
-        dialog.getDialogPane().setPrefSize(220, 180);
 
-        GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(10);
-        grid.setPadding(new Insets(10, 10, 10, 10));
-
-        Label hourLabel = new Label("Hour");
-        Label minuteLabel = new Label("Minute");
-        Spinner hourSpinner = new Spinner(LocalTime.now().getHour(), 24, LocalTime.now().getHour());
-        Spinner minuteSpinner = new Spinner(0, 59, LocalTime.now().getMinute());
-
-        grid.add(hourLabel, 0, 0);
-        grid.add(minuteLabel, 1, 0);
-        grid.add(hourSpinner, 0, 1);
-        grid.add(minuteSpinner, 1, 1);
-        dialog.getDialogPane().setContent(grid);
-        dialog.setResultConverter(dialogButton -> {
-            if (dialogButton == lock) {
-                lockbtn.setSelected(true);
-                return new Pair<>(hourSpinner.getValue().toString(), minuteSpinner.getValue().toString());
-            }
-            if (dialogButton == ButtonType.CANCEL) {
-                lockbtn.setSelected(false);
-            }
-            return null;
+    public Optional<String> showLockTimeSpinner(ToggleButton lockbtn) {
+        
+        JFXTimePicker tp  =new JFXTimePicker(LocalTime.now());
+        tp.setDefaultColor(Paint.valueOf("#2E315B"));
+        tp.getEditor().setStyle("-fx-text-fill: #2E315B; -fx-prompt-text-fill: #2E315B;");
+        
+        Label h = new Label("Choose Time");
+        h.setStyle("-fx-text-fill: #2E315B;-fx-font-size:15px;");
+        
+        JFXButton cancel = new JFXButton("Cancel");
+        cancel.setCancelButton(true);
+        JFXButton set = new JFXButton("Lock");
+        set.setDefaultButton(true);
+        HBox hb = new HBox(10,set,cancel);
+        hb.setAlignment(Pos.CENTER);
+        
+        VBox vb = new VBox(20, h,tp,hb);
+        vb.setAlignment(Pos.CENTER);
+        vb.setPrefSize(300, 200);
+        vb.getStylesheets().clear();
+        vb.getStylesheets().add("/styles/Style-Default.css");
+        
+        JFXAlert<String> al = new JFXAlert<>();
+//        JFXDialogLayout l =  new JFXDialogLayout();
+//        l.setBody(vb);
+        al.setContent(vb);
+        al.setAnimation(JFXAlertAnimation.NO_ANIMATION);
+        //JFXDialog dia = new JFXDialog((StackPane)this.getParent(), vb, JFXDialog.DialogTransition.CENTER);
+        
+        cancel.setOnAction((t) -> {
+            lockbtn.setSelected(false);
+            al.setResult(null);
+            al.close();
         });
-        Optional<Pair<String, String>> result = dialog.showAndWait();
-        return result;
+        set.setOnAction((t) -> {
+            al.setResult(tp.getValue().toString()+":00");
+            System.out.println(tp.getValue().toString()+":00");
+            lockbtn.setSelected(true);
+            al.close();
+        });
+        al.setResultConverter((p) -> {
+            if(p == ButtonType.CANCEL)
+                lockbtn.setSelected(false);
+            return null; //To change body of generated lambdas, choose Tools | Templates.
+        });
+        Optional<String> res =  al.showAndWait();
+        res.ifPresent((t) -> {
+            System.out.println(tp.getValue());
+        });
+    
+        return res;
+    
+        //dia.show();
+        
+        //return tp.getValue().toString().substring(0, 6)+":00";
+            
+//        Dialog<Pair<String, String>> dialog = new Dialog<>();
+//        dialog.setTitle("Lock Service");
+//        dialog.setHeaderText("Set time to unlock service");
+//        ButtonType lock = new ButtonType("Lock", ButtonData.OK_DONE);
+//        dialog.getDialogPane().getButtonTypes().addAll(lock, ButtonType.CANCEL);
+//        dialog.getDialogPane().setPrefSize(220, 180);
+//
+//        GridPane grid = new GridPane();
+//        grid.setHgap(10);
+//        grid.setVgap(10);
+//        grid.setPadding(new Insets(10, 10, 10, 10));
+//        
+//        Label hourLabel = new Label("Hour");
+//        Label minuteLabel = new Label("Minute");
+//        Spinner hourSpinner = new Spinner(LocalTime.now().getHour(), 24, LocalTime.now().getHour());
+//        Spinner minuteSpinner = new Spinner(0, 59, LocalTime.now().getMinute());
+//
+//        grid.add(hourLabel, 0, 0);
+//        grid.add(minuteLabel, 1, 0);
+//        grid.add(hourSpinner, 0, 1);
+//        grid.add(minuteSpinner, 1, 1);
+//        dialog.getDialogPane().setContent(grid);
+//        dialog.setResultConverter(dialogButton -> {
+//            if (dialogButton == lock) {
+//                lockbtn.setSelected(true);
+//                return new Pair<>(hourSpinner.getValue().toString(), minuteSpinner.getValue().toString());
+//            }
+//            if (dialogButton == ButtonType.CANCEL) {
+//                lockbtn.setSelected(false);
+//            }
+//            return null;
+//        });
+//        
+//        Optional<Pair<String, String>> result = dialog.showAndWait();
+//        return result;
     }
     
     public String changeStringFormat(String stringToChange) {
@@ -706,14 +885,17 @@ public class ControlView extends AnchorPane{
             Connection con = pool.getConnection();
             Statement stmt = con.createStatement();
             List<Service> l =d.listServices();
-            Optional<Pair<String, String>> lock_result = showLockTimeSpinner(lockTbtn);
+            Optional<String> o  =showLockTimeSpinner(lockTbtn);
+            String lock_result = null;
+            if(o.isPresent())
+                lock_result = o.get();
             String unlock_time = null;
-            if (lock_result.isPresent()) {
-                if (LocalTime.parse(changeStringFormat(lock_result.get().getKey()) + ":" + changeStringFormat(lock_result.get().getValue()) + ":" + "00").isBefore(LocalTime.now())) {
+            if (lock_result != null) {
+                if (LocalTime.parse(lock_result).isBefore(LocalTime.now())) {
                     createAlert(AlertType.ERROR, "Error", "Time is after current time", "Could not lock service");
                     lockTbtn.setSelected(false);
                 } else {
-                    unlock_time = lock_result.get().getKey() + ":" + lock_result.get().getValue() + ":" + "00";
+                    unlock_time = lock_result;
                 }
             }
             for(int i = 0; i<l.size();i++){
@@ -781,7 +963,7 @@ public class ControlView extends AnchorPane{
                 callTicketToDisplay(trnstkt);
                 allListView.getItems().add(new Ticket(vt_no, vtag) + " - " + service);
             } else {
-                createAlert(AlertType.WARNING, "Empty Queue", "Transfered queue is empty", null);
+                createAlert(AlertType.WARNING, "Empty Queue", "Transfered queue is empty", "Empty Queue");
             }
             pool.releaseConnection(con);
         } catch (SQLException e) {
