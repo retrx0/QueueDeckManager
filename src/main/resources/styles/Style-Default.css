@@ -1,6 +1,4 @@
-/*
- * Empty Stylesheet file.
- */
+
 
 #title{
     -fx-font-size: 25px;
@@ -9,12 +7,89 @@
 #tlable{
     -fx-font-size: 80px;
     -fx-text-fill: #253365;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 5,0.4,0,0);
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 3,0.2,0,0);
 }
 
 .control-view-pane{
     /*-fx-background-color: linear-gradient(to bottom right, #0066ff 59%, #253365 100%);*/
     -fx-background-color: #2E315B;
+}
+
+/*.button{
+    -fx-font-size: 15px;
+    -fx-text-fill: #253365;
+    -fx-background-color:  #505b83;
+    -fx-text-fill: white;
+    -fx-background-radius: 5px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 20,0.4,0,0);
+}
+.button:hover{
+    -fx-font-size: 15px;
+    -fx-text-fill: #253365;
+    -fx-background-color:  #2E315B;
+    -fx-text-fill: white;
+    -fx-background-radius: 5px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 20,0.4,0,0);
+}*/
+
+/*.toggle-button:selected,.toggle-button:hover{
+    -fx-font-size: 15px;
+        -fx-text-fill: #253365;
+    -fx-background-color:  #2E315B;
+    -fx-text-fill: white;
+    -fx-background-radius: 5px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 20,0.4,0,0);
+}
+.toggle-button{
+    -fx-font-size: 15px;
+    -fx-text-fill: #253365;
+    -fx-background-color:  #505b83;
+    -fx-text-fill: white;
+    -fx-background-radius: 5px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 20,0.4,0,0);
+}*/
+
+.jfx-check-box {
+     -jfx-checked-color: #505b83;
+     -jfx-unchecked-color: #848ca8;
+}
+.jfx-check-box .mark{
+     -fx-border-color: white;
+}
+.jfx-button {
+    -jfx-button-type: RAISED;
+     -fx-background-color:  #2E315B;
+     -fx-text-fill: white;
+     -jfx-disable-visual-focus: false;
+}
+.jfx-toggle-button {
+     -jfx-toggle-color: #505b83;
+     -jfx-untoggle-color: #FAFAFA;
+     -jfx-toggle-line-color: #848ca8;
+     -jfx-untoggle-line-color: #999999;
+     -jfx-size: 10.0;
+     -jfx-disable-visual-focus: false;
+}
+.jfx-toggle-button .label{
+    -fx-text-fill: white;
+    -fx-font-size: 10px;
+}
+.jfx-text-field{
+    -fx-prompt-text-fill: WHITE;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 20,0.4,0,0);
+    -fx-text-fill: white;
+}
+.jfx-password-field{
+    -fx-prompt-text-fill: WHITE;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 20,0.4,0,0);
+    -fx-text-fill: white;
+}
+.jfx-combo-box{
+/*    -fx-background-color:  #505b83;*/
+    -fx-background-color: transparent;
+    -fx-text-fill: white;
+    -fx-prompt-text-fill: WHITE;
+    /*-fx-text-alignment: center;*/
 }
 
 VBox > .label{
@@ -27,10 +102,21 @@ VBox >HBox> .label{
     -fx-font-size: 16px;
     -fx-text-align: center;
 }
-VBox > HBox> .button{
+VBox > HBox> .jfx-button{
     -fx-font-size: 15px;
-    -fx-text-fill: #253365;
+    /*    -fx-text-fill: #253365;*/
     -fx-background-radius: 5px;
+    -fx-background-color:  #505b83;
+    -fx-text-fill: white;
+    -jfx-button-type: RAISED;
+     -jfx-disable-visual-focus: false;
+}
+VBox > HBox> .jfx-button:hover{
+    -fx-font-size: 15px;
+    /*    -fx-text-fill: #253365;*/
+    -fx-background-radius: 5px;
+    -fx-background-color:  #505b83;
+    -fx-text-fill: white;
     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 20,0.4,0,0);
 }
 
@@ -71,10 +157,6 @@ scroll-bar:horizontal .track, .scroll-bar:vertical .track{
     -fx-background-radius : 2.0em;
 }
 
-.combo-box{
-    -fx-background-color:  #505b83;
-    -fx-text-fill: white;
-}
 
 .list-view{
     -fx-padding: 0px;
@@ -97,6 +179,38 @@ scroll-bar:horizontal .track, .scroll-bar:vertical .track{
 .list-cell:filled:hover {
     -fx-background-color:  #505b83;
     -fx-text-fill: white;
+}
+
+.menu{
+    -fx-background-color:  #505b83;
+    -fx-text-fill: white;
+}
+.menu:hover{
+    -fx-background-color:  #2E315B;
+    -fx-text-fill: white;
+}
+.menu > .list-view, .menu > .list-cell{
+    -fx-background-color:  #2E315B;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 20,0.4,0,0);
+}
+.menu-bar  .label,.menu-item .label{
+    -fx-text-fill: white;
+}
+.menu-bar{
+    -fx-background-color:  #505b83;
+    -fx-text-fill: white;
+}
+.menu-item{
+    -fx-background-color:  #2E315B;
+    -fx-text-fill: white;
+}
+.menu-item:focused{
+    -fx-background-color:  #505b83;
+    -fx-text-fill: white;
+}
+.context-menu{
+    /*-fx-skin: "com.sun.javafx.scene.control.skin.ContextMenuSkin";*/
+    -fx-background-color:  #2E315B;
 }
 
 .dialog-pane {
@@ -137,7 +251,7 @@ scroll-bar:horizontal .track, .scroll-bar:vertical .track{
     -fx-padding: 0 0 0 0.833em; /* 0px 0px 0px 10px */
 }
 .dialog-pane > .button-bar > .container > .details-button {
-  -fx-alignment: baseline-left;
-  -fx-focus-traversable: false;
-  -fx-padding: 0.416em; /* 5px */
+    -fx-alignment: baseline-left;
+    -fx-focus-traversable: false;
+    -fx-padding: 0.416em; /* 5px */
 }

@@ -1,5 +1,10 @@
 package com.queuedeck.controllers;
 
+import com.jfoenix.controls.JFXButton;
+import com.jfoenix.controls.JFXComboBox;
+import com.jfoenix.controls.JFXDialog;
+import com.jfoenix.controls.JFXPasswordField;
+import com.jfoenix.controls.JFXTextField;
 import java.net.URL;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -9,7 +14,6 @@ import java.sql.Statement;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
-import java.util.Deque;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
@@ -73,14 +77,18 @@ import com.queuedeck.effects.FadeInDownTransition;
 import com.queuedeck.models.ControlView;
 import com.queuedeck.models.DAOInterface;
 import com.queuedeck.models.JPAClass;
-import com.queuedeck.models.JPASQLQueries;
-import com.queuedeck.models.SQLQueries;
 import com.queuedeck.models.Service;
 import com.queuedeck.models.Staff;
-import com.queuedeck.models.StaffLevel;
 import java.io.IOException;
+import java.util.jar.Pack200;
 import java.util.prefs.BackingStoreException;
+import javafx.geometry.Pos;
 import javafx.scene.control.Menu;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Paint;
+import javafx.scene.text.TextAlignment;
 
 public class FXMLController implements Initializable {
 
@@ -170,13 +178,13 @@ public class FXMLController implements Initializable {
     @FXML
     private AnchorPane loginNode;
     @FXML
-    private Button loginBtn;
+    private JFXButton loginBtn;
     @FXML
-    private PasswordField passwordTextField;
+    private JFXPasswordField passwordTextField;
     @FXML
-    TextField staffNoTextField;
+    JFXTextField staffNoTextField;
     @FXML
-    ComboBox<String> loginCombo;
+    JFXComboBox<String> loginCombo;
     @FXML
     private AnchorPane newCustomerNode;
     @FXML
@@ -710,6 +718,7 @@ public class FXMLController implements Initializable {
                                                 Preferences p = Preferences.userNodeForPackage(getClass());
                                                 p.clear();
                                                 p.put("Staff No", staffNoTextField.getText());
+                                                staffList = d.listStaff();
                                                 for(int k=0;k<staffList.size();k++){
                                                     if(staffNoTextField.getText().equals(staffList.get(k).getStaffNo()))
                                                         loggedInStaff = staffList.get(k);
@@ -1078,6 +1087,7 @@ public class FXMLController implements Initializable {
         Optional<Pair<String, String>> result = dialog.showAndWait();
         return result;
     }
+    
 //</editor-fold>
 
     //<editor-fold defaultstate="collapsed" desc="Transitions and Animations">
@@ -1387,37 +1397,23 @@ public class FXMLController implements Initializable {
     @FXML
     public void logoutMenuActionPerformed() {
         try {
-            switch (loginCombo.getSelectionModel().getSelectedItem()) {
-                case "Current Customer":
-                    addTimeDone(currentCusAllListView, currentCusTag);
-                    break;
-                case "Others":
-                    addTimeDone(otherAllListView, othersTag);
-                    break;
-                case "New Customer":
-                    addTimeDone(newCusAllListView, newCusTag);
-                    break;
-                case "Services":
-                    addTimeDone(servicesAllListView, serviceTag);
-                    break;
+            for (int i = 0; i < servList.size(); i++) {
+                if(loginCombo.getSelectionModel().getSelectedItem().equals(servList.get(i).getServiceName()))
+                    addTimeDone(paneList.get(i).lv, servList.get(i).getServiceNo());
+                changeServiceMenu.getItems().get(i).setDisable(false);
+                paneList.get(i).lv.getItems().clear();
             }
+            
             showNode(cardsStackPane, loginNode);
             passwordTextField.clear();
             Connection con = pool.getConnection();
             Statement stmt = con.createStatement();
             stmt.executeUpdate("update staff set online = '0' where staff_no = '" + staffNoTextField.getText() + "'");
+            staffList = d.listStaff();
             loginActionLabel.setText("");
             loggedInAsLabel.setText("");
             counterLabel.setText("");
             menuBar.setVisible(false);
-            currentCusMenuItem.setDisable(false);
-            newCusMenuItem.setDisable(false);
-            servicesMenuItem.setDisable(false);
-            otherMenuItem.setDisable(false);
-            currentCusAllListView.getItems().clear();
-            newCusAllListView.getItems().clear();
-            servicesAllListView.getItems().clear();
-            otherAllListView.getItems().clear();
             pool.releaseConnection(con);
         } catch (SQLException se) {
         }
@@ -1425,150 +1421,314 @@ public class FXMLController implements Initializable {
 
     @FXML
     void changeCounterActionPerformed() {
-        TextInputDialog dialog = new TextInputDialog("");
-        dialog.setTitle("Change Counter");
-        dialog.setHeaderText("Change Counter");
-        dialog.setContentText("Type new counter:");
-        Optional<String> result = dialog.showAndWait();
-        if (result.isPresent()) {
-            try {
-                Connection con = pool.getConnection();
-                ResultSet chkc = con.prepareStatement("select counter from staff").executeQuery();
-                boolean counterInUse = false;
-                while (chkc.next()) {
-                    String chkCounter = chkc.getString("counter");
-                    if (result.get().equals(chkCounter)) {
-                        createAlert(AlertType.WARNING, "Error", "Counter in use", null);
-                        changeCounterActionPerformed();
-                        counterInUse = true;
-                    }
-                }
-                if (chkc.isAfterLast() && counterInUse == false) {
-                    try {
-                        if (Integer.valueOf(result.get()) > 0 && Integer.valueOf(result.get()) < 10) {
-                            Statement stmt = con.createStatement();
-                            stmt.executeUpdate("update staff set counter ='" + result.get() + "' where staff_no = '" + staffNoTextField.getText() + "'");
-                            counterLabel.setText("serving counter: " + result.get());
-                            flash(counterLabel);
-                            createAlert(AlertType.INFORMATION, "Counter Changed", "Counter was successfully changed", null);
-                        } else {
-                            createAlert(AlertType.ERROR, "Error", "Input Error!", null);
-                            changeCounterActionPerformed();
+//        TextInputDialog dialog = new TextInputDialog("");
+//        dialog.setTitle("Change Counter");
+//        dialog.setHeaderText("Change Counter");
+//        dialog.setContentText("Type new counter:");
+        
+        JFXTextField tf = new JFXTextField("");
+        tf.setLabelFloat(true);
+        tf.setPromptText("Type new counter");
+        tf.setStyle("-fx-text-fill: #2E315B;-fx-prompt-text-fill: #2E315B");
+        tf.setAlignment(Pos.CENTER);
+        tf.setPadding(new Insets(10));
+        Label l1 =new Label("Change Counter");
+        l1.setStyle("-fx-text-fill: #2E315B;-fx-font-size:15px;");
+        l1.setAlignment(Pos.CENTER);
+        l1.setTextAlignment(TextAlignment.CENTER);
+        JFXButton done = new JFXButton("Done");
+        JFXButton cancel = new JFXButton("Cancel");
+        HBox hb = new HBox(10, done,cancel);
+        hb.setAlignment(Pos.CENTER);
+        VBox vb = new VBox(20,l1,tf,hb);
+        vb.setPadding(new Insets(10));
+        vb.setPrefSize(210, 160);
+        JFXDialog dia = new JFXDialog(cardsStackPane, vb, JFXDialog.DialogTransition.CENTER);
+        dia.getStylesheets().clear();
+        dia.getStylesheets().add("/styles/Style-Default.css");
+        dia.show();
+        
+        done.setOnKeyPressed((KeyEvent t) -> {
+           if(t.getCode() == KeyCode.ENTER)
+               done.fire();
+        });
+        
+        done.setOnAction((t) -> {
+            if(!tf.getText().isBlank()){
+                try{
+                    boolean counterInUse = false;
+                    Connection con = pool.getConnection();
+                    for (int i = 0; i < staffList.size(); i++) {
+                        if(tf.getText().equals(""+staffList.get(i).getCounter())){
+                            dia.close();
+                            createAlert(AlertType.WARNING, "Error", "Counter in use", null);
+                            dia.show();
+                            counterInUse = true;
                         }
-                    } catch (NumberFormatException e) {;
-                        createAlert(AlertType.ERROR, "Error", "Input Error!", null);
-                        changeCounterActionPerformed();
                     }
+                    if(!counterInUse){
+                        if(Integer.valueOf(tf.getText()) > 0 && Integer.valueOf(tf.getText()) < 20){
+                            Statement stmt = con.createStatement();
+                            stmt.executeUpdate("update staff set counter ='" + tf.getText()+ "' where staff_no = '" + staffNoTextField.getText() + "'");
+                            counterLabel.setText("serving counter: " + tf.getText());
+                            flash(counterLabel);
+                            dia.close();
+                            createAlert(AlertType.INFORMATION, "Counter Changed", "Counter was successfully changed", null);
+                        }else{
+                            dia.close();
+                            createAlert(AlertType.ERROR, "Error", "Input Error!", null);
+                            dia.show();
+                        }
+                    }
+                    pool.releaseConnection(con);
                 }
-                pool.releaseConnection(con);
-            } catch (SQLException e) {
-                e.printStackTrace();
+                catch(NumberFormatException | SQLException e){System.out.println(e);createAlert(AlertType.ERROR, "Error", "Input Error!", null);changeCounterActionPerformed();}
+            }else{
+                shake(tf);
             }
-        }
+        });
+        
+        cancel.setOnAction((t) -> {
+            dia.close();
+        });
+                
+//        Optional<String> result = dialog.showAndWait();
+//        if (result.isPresent()) {
+//            try {
+//                Connection con = pool.getConnection();
+//                ResultSet chkc = con.prepareStatement("select counter from staff").executeQuery();
+//                boolean counterInUse = false;
+//                while (chkc.next()) {
+//                    String chkCounter = chkc.getString("counter");
+//                    if (result.get().equals(chkCounter)) {
+//                        createAlert(AlertType.WARNING, "Error", "Counter in use", null);
+//                        changeCounterActionPerformed();
+//                        counterInUse = true;
+//                    }
+//                }
+//                if (chkc.isAfterLast() && counterInUse == false) {
+//                    try {
+//                        if (Integer.valueOf(result.get()) > 0 && Integer.valueOf(result.get()) < 10) {
+//                            Statement stmt = con.createStatement();
+//                            stmt.executeUpdate("update staff set counter ='" + result.get() + "' where staff_no = '" + staffNoTextField.getText() + "'");
+//                            counterLabel.setText("serving counter: " + result.get());
+//                            flash(counterLabel);
+//                            createAlert(AlertType.INFORMATION, "Counter Changed", "Counter was successfully changed", null);
+//                        } else {
+//                            createAlert(AlertType.ERROR, "Error", "Input Error!", null);
+//                            changeCounterActionPerformed();
+//                        }
+//                    } catch (NumberFormatException e) {
+//                        createAlert(AlertType.ERROR, "Error", "Input Error!", null);
+//                        changeCounterActionPerformed();
+//                    }
+//                }
+//                pool.releaseConnection(con);
+//            } catch (SQLException e) {
+//                e.printStackTrace();
+//            }
+       // }
         //result.ifPresent(name -> System.out.println("Your name: " + name));
     }
 
     @FXML
     void changePasswordActionPerformed() {
-        Dialog<Pair<String, String>> dialog = new Dialog<>();
-        dialog.setTitle("Change Password");
-        dialog.setHeaderText("Change Password");
-        // Set the icon (must be included in the project).
-        //dialog.setGraphic(new ImageView(this.getClass().getResource("login.png").toString()));
-        ButtonType done = new ButtonType("Change", ButtonData.OK_DONE);
-        dialog.getDialogPane().getButtonTypes().addAll(done, ButtonType.CANCEL);
-
-        GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(10);
-        grid.setPadding(new Insets(20, 150, 10, 10));
-
-        PasswordField currentPassword = new PasswordField();
-        currentPassword.setPromptText("Current Password");
-        PasswordField newPassword = new PasswordField();
-        newPassword.setPromptText("New password");
-        PasswordField confirmPassword = new PasswordField();
-        confirmPassword.setPromptText("Confirm password");
-        Label changePasswordActionLabel = new Label("");
-
-        grid.add(new Label("Current Password:"), 0, 0);
-        grid.add(currentPassword, 1, 0);
-        grid.add(new Label("New Password:"), 0, 1);
-        grid.add(newPassword, 1, 1);
-        grid.add(new Label("Confirm Password:"), 0, 2);
-        grid.add(confirmPassword, 1, 2);
-        grid.add(changePasswordActionLabel, 1, 3);
-
-        // Enable/Disable login button depending on whether a username was entered.
-        Node changeBtn = dialog.getDialogPane().lookupButton(done);
-        changeBtn.setDisable(true);
-
-        // Do some validation (using the Java 8 lambda syntax).
-        currentPassword.textProperty().addListener((observable, oldValue, newValue) -> {
-            changeBtn.setDisable(newValue.trim().isEmpty());
-        });
-
-        dialog.getDialogPane().setContent(grid);
-
-        // Request focus on the username field by default.
-        Platform.runLater(() -> {
-            currentPassword.requestFocus();
-            //newPassword.requestFocus();
-            //confirmPassword.requestFocus();
-        });
         Connection con = pool.getConnection();
-        // Convert the result to a username-password-pair when the login button is clicked.
-        dialog.setResultConverter(dialogButton -> {
-            if (dialogButton == done) {
-                try {
-                    ResultSet cp = con.prepareStatement("select md5('" + currentPassword.getText() + "') as password").executeQuery();
-                    ResultSet gp = con.prepareStatement("select password, online from staff where staff_no = '" + staffNoTextField.getText() + "'").executeQuery();
-                    String gp1 = "";
-                    String gonl = "";
-                    String cp1 = "";
-                    while (gp.next()) {
-                        gp1 = gp.getString("password");
-                        gonl = gp.getString("online");
-                    }
-                    while (cp.next()) {
-                        cp1 = cp.getString("password");
-                    }
-                    if (gonl.equals("1")) {
-                        if (cp1.equals(gp1)) {
-                            if (newPassword.getText().equals(confirmPassword.getText())) {
-                                if (newPassword.getText().length() > 4) {
-                                    return new Pair<>("Confirmed Password", confirmPassword.getText());
-                                } else {
-                                    createAlert(AlertType.ERROR, "Error", "Password too short", null);
-                                    changePasswordActionPerformed();
-                                }
+        
+        Label cpl = new Label("Change Password");
+        cpl.setStyle("-fx-text-fill: #2E315B;-fx-text-alignment: center;-fx-font-size: 15px;");
+        cpl.setAlignment(Pos.CENTER);
+        
+        JFXPasswordField cps  = new JFXPasswordField();
+        cps.setPromptText("Current Password");
+        cps.setStyle("-fx-text-fill: #2E315B;-fx-prompt-text-fill: #2E315B");
+        cps.setLabelFloat(true);
+        cps.setPadding(new Insets(15));
+        
+        JFXPasswordField nps  = new JFXPasswordField();
+        nps.setPromptText("New Password");
+        nps.setStyle("-fx-text-fill: #2E315B;-fx-prompt-text-fill: #2E315B");
+        nps.setLabelFloat(true);
+        nps.setPadding(new Insets(15));
+        
+        JFXPasswordField cnps  = new JFXPasswordField();
+        cnps.setPromptText("Confirm Password");
+        cnps.setStyle("-fx-text-fill: #2E315B;-fx-prompt-text-fill: #2E315B");
+        cnps.setLabelFloat(true);
+        cnps.setPadding(new Insets(15));
+        
+        Label al = new Label("");
+        al.setStyle("-fx-text-fill: red; -fx-font-size: 15px;");
+        al.setAlignment(Pos.CENTER);
+        
+        JFXButton change = new JFXButton("Change");
+        JFXButton cancel = new JFXButton("Cancel");
+        HBox hb = new HBox(20, change,cancel);
+        hb.setAlignment(Pos.CENTER);
+        
+        VBox vb = new VBox(10, cpl,cps,nps,cnps,al,hb);
+        vb.setPrefSize(350, 250);
+        vb.setPadding(new Insets(15));
+        vb.setAlignment(Pos.CENTER);
+        
+        JFXDialog dia = new JFXDialog(cardsStackPane, vb, JFXDialog.DialogTransition.CENTER);
+        //dia.setPrefSize(400, 400);
+        dia.getStylesheets().clear();
+        dia.getStylesheets().add("/styles/Style-Default.css");
+        
+        Platform.runLater(() -> {
+            cps.requestFocus();
+        });
+        
+        cancel.setOnAction((t) -> {
+           dia.close();
+        });
+        
+        cnps.setOnKeyPressed((t) -> {
+           if(t.getCode() == KeyCode.ENTER)
+               change.fire();
+        });
+        
+        nps.setOnKeyTyped((t) -> {
+           al.setText("");
+        });
+        
+        change.setOnAction((t) -> {
+            try {
+                ResultSet cp = con.prepareStatement("select md5('" + cps.getText() + "') as password").executeQuery();
+                String cp1 = "";
+                while (cp.next()) {
+                    cp1 = cp.getString("password");
+                }
+                if(loggedInStaff.getOnline() == true) {
+                    if (cp1.equals(loggedInStaff.getStaffPassword())) {
+                        if (nps.getText().equals(cnps.getText())) {
+                            if (nps.getText().length() > 4) {
+                                Statement stmt = con.createStatement();
+                                stmt.executeUpdate("update staff set password = md5('" + nps.getText() + "') where staff_no = '" + staffNoTextField.getText() + "'");
+                                createAlert(AlertType.INFORMATION, "Success", "Password successfully changed", null);
+                                dia.close();
                             } else {
-                                createAlert(AlertType.ERROR, "Error", "Error changing password", "New passwords do not match");
-                                changePasswordActionPerformed();
+                                shake(al);
+                                al.setText("Password too short!");
                             }
                         } else {
-                            createAlert(AlertType.ERROR, "Error", "Error changing password", "Current password not correct!");
-                            changePasswordActionPerformed();
+                            shake(nps);shake(cnps);
+                            shake(al);
+                            al.setText("Passwords do not match!");
                         }
+                    } else {
+                        shake(cps);
+                        shake(al);
+                        al.setText("Current password not correct!");
                     }
-                } catch (SQLException ex) {
-                    Logger.getLogger(FXMLController.class.getName()).log(Level.SEVERE, null, ex);
                 }
-            }
-            return null;
-        });
-        Optional<Pair<String, String>> result = dialog.showAndWait();
-        result.ifPresent(passwordToChange -> {
-            try {
-                Statement stmt = con.createStatement();
-                stmt.executeUpdate("update staff set password = md5('" + passwordToChange.getValue() + "') where staff_no = '" + staffNoTextField.getText() + "'");
-                createAlert(AlertType.INFORMATION, "Success", "Password successfully changed", null);
             } catch (SQLException ex) {
                 Logger.getLogger(FXMLController.class.getName()).log(Level.SEVERE, null, ex);
             }
         });
+        
+        dia.show();
+        
+//        Dialog<Pair<String, String>> dialog = new Dialog<>();
+//        dialog.setTitle("Change Password");
+//        dialog.setHeaderText("Change Password");
+//        // Set the icon (must be included in the project).
+//        //dialog.setGraphic(new ImageView(this.getClass().getResource("login.png").toString()));
+//        ButtonType done = new ButtonType("Change", ButtonData.OK_DONE);
+//        dialog.getDialogPane().getButtonTypes().addAll(done, ButtonType.CANCEL);
+//
+//        GridPane grid = new GridPane();
+//        grid.setHgap(10);
+//        grid.setVgap(10);
+//        grid.setPadding(new Insets(20, 150, 10, 10));
+//
+//        PasswordField currentPassword = new PasswordField();
+//        currentPassword.setPromptText("Current Password");
+//        PasswordField newPassword = new PasswordField();
+//        newPassword.setPromptText("New password");
+//        PasswordField confirmPassword = new PasswordField();
+//        confirmPassword.setPromptText("Confirm password");
+//        Label changePasswordActionLabel = new Label("");
+//
+//        grid.add(new Label("Current Password:"), 0, 0);
+//        grid.add(currentPassword, 1, 0);
+//        grid.add(new Label("New Password:"), 0, 1);
+//        grid.add(newPassword, 1, 1);
+//        grid.add(new Label("Confirm Password:"), 0, 2);
+//        grid.add(confirmPassword, 1, 2);
+//        grid.add(changePasswordActionLabel, 1, 3);
+//
+//        // Enable/Disable login button depending on whether a username was entered.
+//        Node changeBtn = dialog.getDialogPane().lookupButton(done);
+//        changeBtn.setDisable(true);
+//
+//        // Do some validation (using the Java 8 lambda syntax).
+//        currentPassword.textProperty().addListener((observable, oldValue, newValue) -> {
+//            changeBtn.setDisable(newValue.trim().isEmpty());
+//        });
+//
+//        dialog.getDialogPane().setContent(grid);
+//
+//        // Request focus on the username field by default.
+//        Platform.runLater(() -> {
+//            currentPassword.requestFocus();
+//            //newPassword.requestFocus();
+//            //confirmPassword.requestFocus();
+//        });
+//        // Convert the result to a username-password-pair when the login button is clicked.
+//        dialog.setResultConverter(dialogButton -> {
+//            if (dialogButton == done) {
+//                try {
+//                    ResultSet cp = con.prepareStatement("select md5('" + currentPassword.getText() + "') as password").executeQuery();
+//                    ResultSet gp = con.prepareStatement("select password, online from staff where staff_no = '" + staffNoTextField.getText() + "'").executeQuery();
+//                    String gp1 = "";
+//                    String gonl = "";
+//                    String cp1 = "";
+//                    while (gp.next()) {
+//                        gp1 = gp.getString("password");
+//                        gonl = gp.getString("online");
+//                    }
+//                    while (cp.next()) {
+//                        cp1 = cp.getString("password");
+//                    }
+//                    if (gonl.equals("1")) {
+//                        if (cp1.equals(gp1)) {
+//                            if (newPassword.getText().equals(confirmPassword.getText())) {
+//                                if (newPassword.getText().length() > 4) {
+//                                    return new Pair<>("Confirmed Password", confirmPassword.getText());
+//                                } else {
+//                                    createAlert(AlertType.ERROR, "Error", "Password too short", null);
+//                                    changePasswordActionPerformed();
+//                                }
+//                            } else {
+//                                createAlert(AlertType.ERROR, "Error", "Error changing password", "New passwords do not match");
+//                                changePasswordActionPerformed();
+//                            }
+//                        } else {
+//                            createAlert(AlertType.ERROR, "Error", "Error changing password", "Current password not correct!");
+//                            changePasswordActionPerformed();
+//                        }
+//                    }
+//                } catch (SQLException ex) {
+//                    Logger.getLogger(FXMLController.class.getName()).log(Level.SEVERE, null, ex);
+//                }
+//            }
+//            return null;
+//        });
+//        Optional<Pair<String, String>> result = dialog.showAndWait();
+//        result.ifPresent(passwordToChange -> {
+//            try {
+//                Statement stmt = con.createStatement();
+//                stmt.executeUpdate("update staff set password = md5('" + passwordToChange.getValue() + "') where staff_no = '" + staffNoTextField.getText() + "'");
+//                createAlert(AlertType.INFORMATION, "Success", "Password successfully changed", null);
+//            } catch (SQLException ex) {
+//                Logger.getLogger(FXMLController.class.getName()).log(Level.SEVERE, null, ex);
+//            }
+//        });
         pool.releaseConnection(con);
     }
+    
     boolean plotPie = false;
     boolean plotLine = false;
 
@@ -1730,26 +1890,30 @@ public class FXMLController implements Initializable {
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
+    }//flag
 
     @FXML
     void statsBackButtonPressed() {
         menuBar.setVisible(true);
         String selectedItem = loginCombo.getSelectionModel().getSelectedItem();
-        switch (selectedItem) {
-            case "Current Customer":
-                doSlideInFromLeft(cardsStackPane, currentCustomerNode);
-                break;
-            case "Services":
-                doSlideInFromLeft(cardsStackPane, servicesNode);
-                break;
-            case "New Customer":
-                doSlideInFromLeft(cardsStackPane, newCustomerNode);
-                break;
-            case "Others":
-                doSlideInFromLeft(cardsStackPane, otherNode);
-                break;
+        for (int i = 0; i < paneList.size(); i++) {
+            if(selectedItem.equals(paneList.get(i).getService().getServiceName()))
+                doSlideInFromLeft(cardsStackPane, paneList.get(i));
         }
+//        switch (selectedItem) {
+//            case "Current Customer":
+//                doSlideInFromLeft(cardsStackPane, currentCustomerNode);
+//                break;
+//            case "Services":
+//                doSlideInFromLeft(cardsStackPane, servicesNode);
+//                break;
+//            case "New Customer":
+//                doSlideInFromLeft(cardsStackPane, newCustomerNode);
+//                break;
+//            case "Others":
+//                doSlideInFromLeft(cardsStackPane, otherNode);
+//                break;
+//        }
     }
 //</editor-fold>
 
@@ -1793,7 +1957,7 @@ public class FXMLController implements Initializable {
     boolean flag1 = false;
     boolean flag2 = false;
     String pline, trans;
-
+    
     @Override
     public void initialize(URL Url, ResourceBundle rb) {
         DAOInterface d = new JPAClass();
@@ -1816,18 +1980,13 @@ public class FXMLController implements Initializable {
         staffNoTextField.setText(prefs.get("Staff No", ""));
 
         Platform.runLater(() -> {
-            
-            containerPane.getScene().getWindow().setOnCloseRequest((t) -> {
-                close();
-
-            });
+            containerPane.getScene().getWindow().setOnCloseRequest((t) -> {close();});
                 Task task = new Task() {
                     @Override
                     protected Object call() throws Exception {
                         Connection con2 = pool.getConnection();
                         while (true) {
                             Platform.runLater(() -> {
-                                
                                 //LocalTime local_time = LocalTime.parse(String.valueOf(LocalTime.now().getHour()) + ":" + String.valueOf(LocalTime.now().getMinute()) + ":" + "00");
                                 LocalTime localTime = LocalTime.parse(changeStringFormat(String.valueOf(LocalTime.now()).substring(0, 2)) + ":" + String.valueOf(LocalTime.now()).substring(3, 5) + ":" + "00");
                                 try {
@@ -1843,8 +2002,8 @@ public class FXMLController implements Initializable {
                                                 stmt.executeUpdate("update services set locked = '0', unlock_time = null where s_no = '" + servList.get(i).getServiceNo() + "'");
                                                 System.out.println("time unlock done");
                                             }else{
-                                                paneList.get(i).lock.setSelected(false);
-                                                paneList.get(i).lock.setText("Lock");
+                                                paneList.get(i).lock.setSelected(true);
+                                                paneList.get(i).lock.setText("Unlock");
                                             }
                                         }
                                         
