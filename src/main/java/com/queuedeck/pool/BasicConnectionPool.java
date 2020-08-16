@@ -12,6 +12,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.scene.control.Alert;
 
 /**
  *
@@ -32,7 +33,13 @@ public class BasicConnectionPool implements ConnectionPool{
             try {
                 pool.add(createConnection(url, user, password));
             } catch (SQLException ex) {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Error");
+                alert.setHeaderText("Could not connect to database");
+                alert.setContentText("There was a problem connecting to database server, please check that you have active internet connectivity and try again. If problem persist contact support@queuedeck.com");
+                alert.showAndWait();
                 Logger.getLogger(BasicConnectionPool.class.getName()).log(Level.SEVERE, null, ex);
+                System.exit(0);
             }
         }
         return new BasicConnectionPool(url, user, password, pool);
@@ -84,8 +91,17 @@ public class BasicConnectionPool implements ConnectionPool{
 
     @Override
     public Connection getConnection() {
-         Connection connection = connectionPool.remove(connectionPool.size() - 1);
-        usedConnections.add(connection);
+        Connection connection = null;
+        try {
+            connection = connectionPool.remove(connectionPool.size() - 1);
+            usedConnections.add(connection);
+        } catch (Exception e) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText("Could not connect to database");
+            alert.setContentText("There was a problem connecting to database server");
+            alert.showAndWait();
+        }
         return connection;
     }
     

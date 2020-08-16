@@ -38,7 +38,7 @@ public class MainApp extends Application {
         stage.setResizable(false);
         stage.show();
         // Add a custom icon.
-        stage.getIcons().add(new Image(this.getClass().getResource("/img/ficon.jpeg").toString()));
+        stage.getIcons().add(new Image(this.getClass().getResource("/img/qd-ico.ico").toString()));
 
 //        Thread thread = new Thread(() -> {
 //            Runnable updater = () -> {

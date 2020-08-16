@@ -10,6 +10,7 @@
 <?import javafx.scene.chart.PieChart?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.CheckMenuItem?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.Menu?>
@@ -325,20 +326,15 @@
                <children>
                   <JFXPasswordField fx:id="passwordTextField" labelFloat="true" layoutX="218.0" layoutY="204.0" prefHeight="25.0" prefWidth="149.0" promptText="Password" unFocusColor="WHITE" />
                   <JFXComboBox fx:id="loginCombo" layoutX="215.0" layoutY="247.0" prefHeight="25.0" prefWidth="156.0" promptText="   Select Service" unFocusColor="#ffffff00" />
-                  <JFXTextField fx:id="staffNoTextField" labelFloat="true" layoutX="219.0" layoutY="159.0" prefHeight="25.0" prefWidth="149.0" promptText="Staff Number" unFocusColor="WHITE" />
                   <JFXButton fx:id="loginBtn" alignment="CENTER" buttonType="RAISED" layoutX="247.0" layoutY="306.0" onAction="#loginButtonPressed" prefHeight="35.0" prefWidth="93.0" text="Login" />
-                  <Label layoutX="249.0" layoutY="108.0" text="Staff Login" textAlignment="CENTER" textFill="WHITE">
-                     <font>
-                        <Font size="18.0" />
-                     </font>
-                  </Label>
                   <Label fx:id="loginActionLabel" alignment="CENTER" layoutX="174.0" layoutY="280.0" prefHeight="20.0" prefWidth="236.0" textAlignment="CENTER" textFill="#ae2b2b">
                      <font>
                         <Font size="13.0" />
-                     </font></Label>
-                  <ImageView fitHeight="88.0" fitWidth="137.0" layoutX="235.0" layoutY="33.0" pickOnBounds="true" preserveRatio="true">
+                     </font>
+                  </Label>
+                  <ImageView fitHeight="151.0" fitWidth="149.0" layoutX="234.0" layoutY="29.0" pickOnBounds="true" preserveRatio="true">
                      <image>
-                        <Image url="@../img/logo-white-small.PNG" />
+                        <Image url="@../img/icon-qd-bsr.png" />
                      </image>
                   </ImageView>
                   <Label layoutX="176.0" layoutY="368.0" text="Copyright © 2020 all rights reserved Queue Deck LLC" textFill="WHITE">
@@ -346,6 +342,12 @@
                         <Font size="10.0" />
                      </font>
                   </Label>
+                  <Label layoutX="249.0" layoutY="29.0" text="Staff Login" textAlignment="CENTER" textFill="WHITE">
+                     <font>
+                        <Font size="18.0" />
+                     </font>
+                  </Label>
+                  <JFXTextField fx:id="staffNoTextField" labelFloat="true" layoutX="219.0" layoutY="159.0" prefHeight="25.0" prefWidth="149.0" promptText="Staff Number" unFocusColor="WHITE" />
                </children>
             </AnchorPane>
          </children>
@@ -357,6 +359,7 @@
                   <MenuItem mnemonicParsing="false" onAction="#changeCounterActionPerformed" text="Change Counter" />
                   <MenuItem mnemonicParsing="false" onAction="#changePasswordActionPerformed" text="Change Password" />
                   <MenuItem mnemonicParsing="false" onAction="#statsButtonPressed" text="Stats" />
+                  <CheckMenuItem fx:id="showNotifcationMenuItem" mnemonicParsing="false" selected="true" text="Show notofication" />
                   <MenuItem mnemonicParsing="false" onAction="#logoutMenuActionPerformed" text="Logout" />
                </items>
             </Menu>

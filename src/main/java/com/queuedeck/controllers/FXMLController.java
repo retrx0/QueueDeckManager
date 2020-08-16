@@ -83,6 +83,7 @@ import java.io.IOException;
 import java.util.jar.Pack200;
 import java.util.prefs.BackingStoreException;
 import javafx.geometry.Pos;
+import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.Menu;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
@@ -232,6 +233,7 @@ public class FXMLController implements Initializable {
     @FXML
     Label servicesMissedNoLabel;
     @FXML Menu changeServiceMenu;
+    @FXML private CheckMenuItem showNotifcationMenuItem;
 //</editor-fold>
 
     //<editor-fold defaultstate="collapsed" desc="Action Methods">
@@ -2023,6 +2025,7 @@ public class FXMLController implements Initializable {
                                                  else if ("" + pplineb != null) ppline = (ppline + pplineb);
                                                 paneList.get(i).noInlineLabel.setText("" + ppline);
                                                 }
+                                            if(showNotifcationMenuItem.isSelected()){
                                                 int notifCount = ppline + pplineb;
                                                 if (notifCount > 0) flag1 = true;
                                                 if (notifCount == 0 && flag1) flag2 = true;
@@ -2031,6 +2034,7 @@ public class FXMLController implements Initializable {
                                                     flag1 = false;
                                                     flag2 = false;
                                                 }
+                                            }
                                                 ResultSet rst2 = con2.prepareStatement("select sum(case when time_called IS NULL and trans_to = '" + servList.get(i).getServiceNo() + "' then 1 else 0 end) as count_num_trans from transfer where t_date='" + local_date + "'").executeQuery();
                                                 while (rst2.next()) {
                                                     String noTrans = rst2.getString("count_num_trans");
