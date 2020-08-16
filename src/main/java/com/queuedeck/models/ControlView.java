@@ -603,7 +603,7 @@ public class ControlView extends AnchorPane{
                             List<Service> queue_list = d.listServices();
                             for (int i = 0; i < queue_list.size(); i++) {
                                 if (queueSelection.getSelectionModel().getSelectedItem().toString().equals(queue_list.get(i).getServiceName())) {
-                                    for (int j = 0; i < service_list.size(); j++) {
+                                    for (int j = 0; j < service_list.size(); j++) {
                                         if (servicesSelction.getSelectionModel().getSelectedItem().toString().equals(service_list.get(j).getQueueServiceName())) {
                                             al.setResult(new Pair<>(queue_list.get(i).getServiceName(), service_list.get(j).getQueueServiceName()));
                                         }
@@ -820,15 +820,13 @@ public class ControlView extends AnchorPane{
             al.close();
         });
         al.setResultConverter((p) -> {
-            if(p == ButtonType.CANCEL)
+            if(p == ButtonType.CANCEL){
                 lockbtn.setSelected(false);
+                return null;
+            }
             return null; //To change body of generated lambdas, choose Tools | Templates.
         });
         Optional<String> res =  al.showAndWait();
-        res.ifPresent((t) -> {
-            System.out.println(tp.getValue());
-        });
-    
         return res;
     
         //dia.show();
@@ -896,22 +894,26 @@ public class ControlView extends AnchorPane{
                     lockTbtn.setSelected(false);
                 } else {
                     unlock_time = lock_result;
-                }
-            }
-            for(int i = 0; i<l.size();i++){
-                if(l.get(i).getServiceNo().equals(service_no)){
-                    if(lockTbtn.isSelected()){
-                        if(l.get(i).getLocked() == false){
-                            lockTbtn.setText("Unlock");
-                            stmt.executeUpdate("update services set locked = '1', staff_no = '" + FXMLController.loggedInStaff.getStaffNo() + "', unlock_time = '" + unlock_time + "' where s_no = '" + service_no + "'");
+                    
+                    for(int i = 0; i<l.size();i++){
+                    if(l.get(i).getServiceNo().equals(service_no)){
+                        if(lockTbtn.isSelected()){
+                            if(l.get(i).getLocked() == false){
+                                lockTbtn.setText("Unlock");
+                                stmt.executeUpdate("update services set locked = '1', staff_no = '" + FXMLController.loggedInStaff.getStaffNo() + "', unlock_time = '" + unlock_time + "' where s_no = '" + service_no + "'");
+                            }else {
+                                createAlert(AlertType.WARNING, "Queue Locked", "Queue was already locked by " + l.get(i).getLockedByStaff() + "!", "Queue is already locked");
+                            }
                         }else {
-                            createAlert(AlertType.WARNING, "Queue Locked", "Queue was already locked by " + l.get(i).getLockedByStaff() + "!", "Queue is already locked");
+                            lockTbtn.setText("Lock");
+                            stmt.executeUpdate("update services set locked = '0', unlock_time = null where s_no = '" + service_no + "'");
                         }
-                    }else {
-                        lockTbtn.setText("Lock");
-                        stmt.executeUpdate("update services set locked = '0', unlock_time = null where s_no = '" + service_no + "'");
+                    }
                     }
                 }
+                
+            }else{
+                lockTbtn.setSelected(false);
             }
             pool.releaseConnection(con);
         } catch (SQLException e) {
