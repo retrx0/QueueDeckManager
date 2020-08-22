@@ -2233,11 +2233,11 @@ public class FXMLController implements Initializable {
 //                                        }
                         //         }
                                  
-                                try {
-                                    Thread.sleep(1000);
-                                } catch (InterruptedException ex) {
-                                    Logger.getLogger(FXMLController.class.getName()).log(Level.SEVERE, null, ex);
-                                }
+                            try {
+                                Thread.sleep(1000);
+                            } catch (InterruptedException ex) {
+                                Logger.getLogger(FXMLController.class.getName()).log(Level.SEVERE, null, ex);
+                            }
   
                         }
                         //pool.releaseConnection(con2);

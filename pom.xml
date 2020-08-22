@@ -14,7 +14,13 @@
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
         <mainClass>com.queuedeck.app.MainApp</mainClass>
-    </properties>
+        <!-- Installer variables -->
+        <staging.dir>${project.build.directory}/staging</staging.dir>
+        <info.appName>Queue Deck</info.appName>
+        <info.appsubpath>queue-deck/standard</info.appsubpath>
+        <izpack.dir.app>${basedir}/src/main/izpack</izpack.dir.app>
+        <staging.dir.app>${staging.dir}/appfiles</staging.dir.app>
+  </properties>
 
     <organization>
         <!-- Used as the 'Vendor' for JNLP generation -->
@@ -119,6 +125,71 @@
                 </manifest>
               </archive>
             </configuration>
+          </plugin>
+          <!--<plugin>
+              <groupId>org.codehaus.izpack</groupId>
+              <artifactId>izpack-maven-plugin</artifactId>
+              <version>1.0-alpha-5</version>
+              <executions>
+                  <execution>
+                      <phase>package</phase>
+                      <goals>
+                          <goal>izpack</goal>
+                      </goals>
+                      <configuration>
+                          <installerFile>${project.build.directory}/${project.build.finalName}-installer.jar</installerFile>
+                      </configuration>
+                  </execution>
+              </executions>
+              <dependencies>
+                  <dependency>
+                      <groupId>org.codehaus.izpack</groupId>
+                      <artifactId>izpack-standalone-compiler</artifactId>
+                      <version>4.3.1</version>
+                  </dependency>
+              </dependencies>
+          </plugin> -->
+          <plugin>
+              <artifactId>maven-assembly-plugin</artifactId>
+              <executions>
+                <execution>
+                  <id>make-assembly</id> <!-- this is used for inheritance merges -->
+                  <phase>package</phase> <!-- bind to the packaging phase -->
+                  <goals>
+                    <goal>single</goal>
+                  </goals>
+                </execution>
+              </executions>
+              <configuration>
+                  <archive>
+                      <manifest>
+                          <addClasspath>true</addClasspath>
+                          <classpathPrefix>lib/</classpathPrefix>
+                          <mainClass>com.queuedeck.app.MainApp</mainClass>
+                      </manifest>
+                  </archive>
+                  <descriptorRefs>
+                      <descriptorRef>jar-with-dependencies</descriptorRef>
+                  </descriptorRefs>
+              </configuration>
+          </plugin>
+          <plugin>
+              <groupId>org.springframework.boot</groupId>
+              <artifactId>spring-boot-maven-plugin</artifactId>
+              <version>2.3.3.RELEASE</version>
+              <executions>
+                  <execution>
+                      <goals>
+                          <goal>repackage</goal>
+                      </goals>
+                      <configuration>
+                          <classifier>spring-boot</classifier>
+                          <mainClass>
+                              com.queuedeck.app.MainApp
+                          </mainClass>
+                      </configuration>
+                  </execution>
+              </executions>
           </plugin>
         </plugins>
     </build>
