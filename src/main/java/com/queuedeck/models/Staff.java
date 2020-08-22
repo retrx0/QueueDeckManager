@@ -5,7 +5,6 @@
  */
 package com.queuedeck.models;
 
-import com.mysql.cj.xdevapi.Result;
 import com.queuedeck.pool.BasicConnectionPool;
 import java.sql.Connection;
 import java.sql.ResultSet;

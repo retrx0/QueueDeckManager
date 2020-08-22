@@ -324,6 +324,11 @@
             </AnchorPane>
             <AnchorPane fx:id="loginNode" onKeyPressed="#loignNodeKeyPressed" prefHeight="788.0" prefWidth="600.0" style="-fx-background-color: #2E315B;">
                <children>
+                  <ImageView fitHeight="130.0" fitWidth="126.0" layoutX="231.0" layoutY="43.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@../img/icon-qd-5rr.png" />
+                     </image>
+                  </ImageView>
                   <JFXPasswordField fx:id="passwordTextField" labelFloat="true" layoutX="218.0" layoutY="204.0" prefHeight="25.0" prefWidth="149.0" promptText="Password" unFocusColor="WHITE" />
                   <JFXComboBox fx:id="loginCombo" layoutX="215.0" layoutY="247.0" prefHeight="25.0" prefWidth="156.0" promptText="   Select Service" unFocusColor="#ffffff00" />
                   <JFXButton fx:id="loginBtn" alignment="CENTER" buttonType="RAISED" layoutX="247.0" layoutY="306.0" onAction="#loginButtonPressed" prefHeight="35.0" prefWidth="93.0" text="Login" />
@@ -332,11 +337,6 @@
                         <Font size="13.0" />
                      </font>
                   </Label>
-                  <ImageView fitHeight="151.0" fitWidth="149.0" layoutX="234.0" layoutY="29.0" pickOnBounds="true" preserveRatio="true">
-                     <image>
-                        <Image url="@../img/icon-qd-bsr.png" />
-                     </image>
-                  </ImageView>
                   <Label layoutX="176.0" layoutY="368.0" text="Copyright © 2020 all rights reserved Queue Deck LLC" textFill="WHITE">
                      <font>
                         <Font size="10.0" />
