@@ -17,11 +17,6 @@ import com.jfoenix.controls.JFXToggleButton;
 import com.queuedeck.controllers.FXMLController;
 import static com.queuedeck.controllers.FXMLController.pool;
 import com.queuedeck.effects.FlashTransition;
-import de.jensd.fx.glyphs.GlyphIcon;
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView;
-import de.jensd.fx.glyphs.materialicons.MaterialIcon;
-import de.jensd.fx.glyphs.materialicons.MaterialIconView;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -34,28 +29,18 @@ import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.prefs.Preferences;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.Button;
-import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.Spinner;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.CornerRadii;
-import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
@@ -65,7 +50,6 @@ import javafx.scene.text.Font;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Modality;
 import javafx.util.Pair;
-import javafx.util.StringConverter;
 
 
 /**
@@ -100,6 +84,7 @@ public class ControlView extends AnchorPane{
         return service;
     }
     
+    
     String tkt;
     DAOInterface d = new JPAClass();
     
@@ -113,7 +98,7 @@ public class ControlView extends AnchorPane{
     public JFXToggleButton lock = new JFXToggleButton();
     
     Label missedLabel = new Label("Missed");
-    Label missedCounterLabel = new Label("0");
+    public Label missedCounterLabel = new Label("0");
     Label allLabel = new Label("All");
     Label transLabel = new Label("Transfered");
     public Label transferCounterLabel = new Label("0");
@@ -268,7 +253,7 @@ public class ControlView extends AnchorPane{
         });
     }
     
-    void flash(Label l) {
+    void flash(Node l) {
         FlashTransition ft = new FlashTransition(l);
         ft.play();
     }
@@ -278,27 +263,10 @@ public class ControlView extends AnchorPane{
     }
     
     void createAlert(Alert.AlertType alertType, String title, String contextText, String headerText) {
-//        Alert alert = new Alert(alertType);
-//        alert.setTitle(title);
-//        alert.setHeaderText(headerText);
-//        alert.setContentText(contextText);
-//        alert.showAndWait();
-        
         JFXAlert al  = new JFXAlert();
         al.initModality(Modality.APPLICATION_MODAL);
         al.setOverlayClose(false);
         al.setAnimation(JFXAlertAnimation.NO_ANIMATION);
-        
-//        switch(alertType){
-//            case CONFIRMATION:
-//                al.setGraphic(new FontAwesomeIconView(FontAwesomeIcon.CHECK_CIRCLE));
-//                break;
-//            case ERROR:
-//                al.setGraphic(new FontAwesomeIconView(FontAwesomeIcon.CLOSE));
-//                break;
-//            case WARNING:
-//                al.setGraphic(new FontAwesomeIconView(FontAwesomeIcon.WARNING));
-//        }
         
         Label ct = new Label(contextText);
         ct.setStyle("-fx-text-fill: #2E315B");
@@ -316,17 +284,12 @@ public class ControlView extends AnchorPane{
         lay.setBody(ct);
         lay.setActions(doneBtn);
         
-//        al.setTitle(title);
-//        al.setContent(lay);
-////        al.setContentText(contextText);
-//        al.show();
+        al.setTitle(title);
         
         JFXDialog di =new JFXDialog((StackPane)this.getParent(), lay, JFXDialog.DialogTransition.LEFT);
-        
         doneBtn.setOnAction((t) -> {
            di.close();
         });
-        
         di.show();
     }
     
@@ -360,12 +323,12 @@ public class ControlView extends AnchorPane{
                         int vt_no = rs2.getInt("t_no");
                         tkt = vtag + vt_no;
                         ResultSet gs = con.prepareStatement("select service from transfer where tag = '" + vtag + "' and t_no = '" + vt_no + "' and t_date='" + local_date + "'").executeQuery();
-                        String service = "";
+                        String service1 = "";
                         while (gs.next()) {
-                            service = gs.getString("service");
+                            service1 = gs.getString("service");
                         }
                         stmt.executeUpdate("update transfer set time_called = '" + localtime + "', staff_no = '" + FXMLController.loggedInStaff.getStaffNo() + "' where tag = '" + vtag + "' and t_no = '" + vt_no + "' and time_called is null and t_date='" + local_date + "'");
-                        allListVIew.getItems().add(new Ticket(vt_no, vtag) + " - " + service);
+                        allListVIew.getItems().add(new Ticket(vt_no, vtag) + " - " + service1);
                         currentlyServingLabel.setText(tkt);
                         flash(currentlyServingLabel);
                         callTicketToDisplay(tkt);
@@ -373,10 +336,10 @@ public class ControlView extends AnchorPane{
                     } else {
                         String ntag = rs.getString("tag");
                         int ntn = rs.getInt("t_no");
-                        String service = rs.getString("service");
+                        String service2 = rs.getString("service");
                         String ntkt = ntag + ntn;
                         stmt.executeUpdate("update tickets set time_called = '" + localtime + "', staff_no = '" + FXMLController.loggedInStaff.getStaffNo() + "', alert = '1'  where t_no = '" + ntn + "' and tag = '" + ntag + "' and time_called is null and t_date='" + local_date + "'");
-                        allListVIew.getItems().add(new Ticket(ntn, ntag) + " - " + service);
+                        allListVIew.getItems().add(new Ticket(ntn, ntag) + " - " + service2);
                         currentlyServingLabel.setText(ntkt);
                         flash(currentlyServingLabel);
                         callTicketToDisplay(ntkt);
@@ -385,10 +348,10 @@ public class ControlView extends AnchorPane{
                 } else if (!autoTransferCB.isSelected()) {
                     String ntag = rs.getString("tag");
                     int ntn = rs.getInt("t_no");
-                    String service = rs.getString("service");
+                    String service3 = rs.getString("service");
                     String ntkt = ntag + ntn;
                     stmt.executeUpdate("update tickets set time_called = '" + localtime + "', staff_no = '" + FXMLController.loggedInStaff.getStaffNo() + "' , alert = '1' where t_no = '" + ntn + "' and tag = '" + ntag + "' and time_called is null and t_date='" + local_date + "'");
-                    allListVIew.getItems().add(new Ticket(ntn, ntag) + " - " + service);
+                    allListVIew.getItems().add(new Ticket(ntn, ntag) + " - " + service3);
                     currentlyServingLabel.setText(ntkt);
                     flash(currentlyServingLabel);
                     callTicketToDisplay(ntkt);
@@ -400,12 +363,12 @@ public class ControlView extends AnchorPane{
                     int vt_no = rs2.getInt("t_no");
                     tkt = vtag + vt_no;
                     ResultSet gs = con.prepareStatement("select service from transfer where tag = '" + vtag + "' and t_no = '" + vt_no + "'and t_date='" + local_date + "'").executeQuery();
-                    String service = "";
+                    String service4 = "";
                     while (gs.next()) {
-                        service = gs.getString("service");
+                        service4 = gs.getString("service");
                     }
                     stmt.executeUpdate("update transfer set time_called = '" + localtime + "', staff_no = '" + FXMLController.loggedInStaff.getStaffNo() + "' where tag = '" + vtag + "' and t_no = '" + vt_no + "' and time_called is null and t_date='" + local_date + "'");
-                    allListVIew.getItems().add(new Ticket(vt_no, vtag) + " - " + service);
+                    allListVIew.getItems().add(new Ticket(vt_no, vtag) + " - " + service4);
                     currentlyServingLabel.setText(tkt);
                     flash(currentlyServingLabel);
                     callTicketToDisplay(tkt);
@@ -473,28 +436,7 @@ public class ControlView extends AnchorPane{
         JFXComboBox queueSelection = new JFXComboBox();
         JFXComboBox servicesSelction = new JFXComboBox();
         queueSelection.setLabelFloat(true);servicesSelction.setLabelFloat(true);
-        
-        
-////        Dialog<Pair<String, String>> dialog = new Dialog<>();
-////        dialog.setTitle("Transfer Ticket");
-////        dialog.setHeaderText("Select queue and service to transfer to");
-////        dialog.setGraphic(new ImageView(this.getClass().getResource("/img/icons8-exchange-802.png").toString()));
-////        ButtonType done = new ButtonType("Transfer", ButtonData.OK_DONE);
-////        dialog.getDialogPane().getButtonTypes().addAll(done, ButtonType.CANCEL);
-////
-////        GridPane grid = new GridPane();
-////        grid.setHgap(10);
-////        grid.setVgap(10);
-////        grid.setPadding(new Insets(20, 200, 10, 10));
-////
-//////        ComboBox queueSelection = new ComboBox();
-//////        ComboBox servicesSelction = new ComboBox();
-////
-////        grid.add(queueSelection, 1, 0);
-////        grid.add(servicesSelction, 1, 1);
-////        dialog.getDialogPane().setContent(grid);
 
-        //String lcb = loginCombo.getSelectionModel().getSelectedItem();
         try {
             Connection con = pool.getConnection();
             List<String> ql = new ArrayList<>();
@@ -523,42 +465,6 @@ public class ControlView extends AnchorPane{
                     }
                 }
             });
-//            dialog.setResultConverter(dialogButton -> {
-//                if (dialogButton == done) {
-//                    if (queueSelection.getSelectionModel().getSelectedItem().toString() == null) {
-//                        createAlert(AlertType.ERROR, "Error", "Cannot Transfer Ticket", "Please select a queue and service to transfer to");
-//                    } else {
-//                        try {
-//                            List<QueueServices> service_list = d.listQueueServices();
-//                            List<Service> queue_list = d.listServices();
-////                            ResultSet gq2 = con.prepareStatement("select service from services").executeQuery();
-////                            ResultSet gs = con.prepareStatement("select service from queue_services").executeQuery();
-////                            while (gq2.next()) {
-////                                queue_list.add(gq2.getString("service"));
-////                            }
-////                            while (gs.next()) {
-////                                service_list.add(gs.getString("service"));
-////                            }
-//                            for (int i = 0; i < queue_list.size(); i++) {
-//                                if (queueSelection.getSelectionModel().getSelectedItem().toString().equals(queue_list.get(i).getServiceName())) {
-//                                    for (int j = 0; i < service_list.size(); j++) {
-//                                        if (servicesSelction.getSelectionModel().getSelectedItem().toString().equals(service_list.get(j).getQueueServiceName())) {
-//                                            return new Pair<>(queue_list.get(i).getServiceName(), service_list.get(j).getQueueServiceName());
-//                                        }
-//                                    }
-//                                }
-//                            }
-//                            pool.releaseConnection(con);
-//                        } catch (Exception ex) {
-//                            Logger.getLogger(FXMLController.class.getName()).log(Level.SEVERE, null, ex);
-//                        }
-//                    }
-//                }
-//                if (dialogButton == ButtonType.CANCEL) {
-//
-//                }
-//                return null;
-//            });
 
         pool.releaseConnection(con);
 
@@ -568,9 +474,11 @@ public class ControlView extends AnchorPane{
         
         JFXButton trans = new JFXButton("Transfer");
         trans.setButtonType(JFXButton.ButtonType.RAISED);
+        trans.setPrefSize(50, 25);
         JFXButton cancel = new JFXButton("Cancel");
         cancel.setCancelButton(true);
         cancel.setButtonType(JFXButton.ButtonType.RAISED);
+        cancel.setPrefSize(50, 25);
         HBox hb = new HBox(10, trans,cancel);
         hb.setAlignment(Pos.CENTER);
         
@@ -621,8 +529,6 @@ public class ControlView extends AnchorPane{
         });
         
         Optional<Pair<String,String>> res = al.showAndWait();
-        
-      //  Optional<Pair<String, String>> result = dialog.showAndWait();
         
         return res;
     }
@@ -720,11 +626,11 @@ public class ControlView extends AnchorPane{
                 }
                 String vtag = cc.getString("tag");
                 String vtn = cc.getString("t_no");
-                String service = cc.getString("service");
+                String service_local = cc.getString("service");
                 Statement stmt = con.createStatement();
                 currentlyServingTicketNumber.setText(vtag + vtn);
                 callTicketToDisplay(vtag + vtn);
-                allListView.getItems().add(vtag + vtn + " - " + service);
+                allListView.getItems().add(vtag + vtn + " - " + service_local);
                 String currentTime = String.valueOf(LocalTime.now().minusHours(1)).substring(0, 8);
                 stmt.executeUpdate("update tickets set time_called = '" + currentTime + "' where tag = '" + vtag + "' and t_no = '" + vtn + "' and t_date='" + local_date + "'");
                 PreparedStatement count = con.prepareStatement("select count(*) from tickets where missing_client is not null and time_called is null and staff_no = '" + FXMLController.loggedInStaff.getStaffNo() + "' and t_date='" + local_date + "' ");
@@ -828,46 +734,7 @@ public class ControlView extends AnchorPane{
         });
         Optional<String> res =  al.showAndWait();
         return res;
-    
-        //dia.show();
         
-        //return tp.getValue().toString().substring(0, 6)+":00";
-            
-//        Dialog<Pair<String, String>> dialog = new Dialog<>();
-//        dialog.setTitle("Lock Service");
-//        dialog.setHeaderText("Set time to unlock service");
-//        ButtonType lock = new ButtonType("Lock", ButtonData.OK_DONE);
-//        dialog.getDialogPane().getButtonTypes().addAll(lock, ButtonType.CANCEL);
-//        dialog.getDialogPane().setPrefSize(220, 180);
-//
-//        GridPane grid = new GridPane();
-//        grid.setHgap(10);
-//        grid.setVgap(10);
-//        grid.setPadding(new Insets(10, 10, 10, 10));
-//        
-//        Label hourLabel = new Label("Hour");
-//        Label minuteLabel = new Label("Minute");
-//        Spinner hourSpinner = new Spinner(LocalTime.now().getHour(), 24, LocalTime.now().getHour());
-//        Spinner minuteSpinner = new Spinner(0, 59, LocalTime.now().getMinute());
-//
-//        grid.add(hourLabel, 0, 0);
-//        grid.add(minuteLabel, 1, 0);
-//        grid.add(hourSpinner, 0, 1);
-//        grid.add(minuteSpinner, 1, 1);
-//        dialog.getDialogPane().setContent(grid);
-//        dialog.setResultConverter(dialogButton -> {
-//            if (dialogButton == lock) {
-//                lockbtn.setSelected(true);
-//                return new Pair<>(hourSpinner.getValue().toString(), minuteSpinner.getValue().toString());
-//            }
-//            if (dialogButton == ButtonType.CANCEL) {
-//                lockbtn.setSelected(false);
-//            }
-//            return null;
-//        });
-//        
-//        Optional<Pair<String, String>> result = dialog.showAndWait();
-//        return result;
     }
     
     public String changeStringFormat(String stringToChange) {
@@ -941,8 +808,8 @@ public class ControlView extends AnchorPane{
                     PreparedStatement transferred = con.prepareStatement("select transferred from tickets where tag = '" + vtag + "' and t_no = '" + vtn + "' and t_date='" + local_date + "' ");
                     ResultSet rs2 = transferred.executeQuery();
                     if (rs2.next()) {
-                        String transfer = rs2.getString("transferred");
-                        if (transfer != null) {
+                        String transfer_local = rs2.getString("transferred");
+                        if (transfer_local != null) {
                             String updTimeDone = "update transfer set time_done= '" + currentTime + "' where tag = '" + vtag + "' and t_no = '" + vtn + "' and staff_no = '" + FXMLController.loggedInStaff.getStaffNo() + "' and t_date='" + local_date + "' ";
                             stmt2.executeUpdate(updTimeDone);
                         } else {
@@ -956,14 +823,14 @@ public class ControlView extends AnchorPane{
                 String trnstkt = vtag + vt_no;
                 PreparedStatement getService = con.prepareStatement("select service from transfer where tag = '" + vtag + "' and t_no = '" + vt_no + "' and t_date='" + local_date + "' ");
                 ResultSet gs = getService.executeQuery();
-                String service = "";
+                String service_local = "";
                 while (gs.next()) {
-                    service = gs.getString("service");
+                    service_local = gs.getString("service");
                 }
                 stmt2.executeUpdate("update transfer set time_called = '" + currentTime + "', staff_no = '" + FXMLController.loggedInStaff.getStaffNo() + "' where tag = '" + vtag + "' and t_no = '" + vt_no + "' and t_date='" + local_date + "'");
                 currentlyServing.setText(trnstkt);
                 callTicketToDisplay(trnstkt);
-                allListView.getItems().add(new Ticket(vt_no, vtag) + " - " + service);
+                allListView.getItems().add(new Ticket(vt_no, vtag) + " - " + service_local);
             } else {
                 createAlert(AlertType.WARNING, "Empty Queue", "Transfered queue is empty", "Empty Queue");
             }
