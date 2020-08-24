@@ -474,18 +474,26 @@ public class ControlView extends AnchorPane{
         
         JFXButton trans = new JFXButton("Transfer");
         trans.setButtonType(JFXButton.ButtonType.RAISED);
-        trans.setPrefSize(50, 25);
+        trans.setPrefSize(80, 40);
+        trans.getStylesheets().clear();
+        trans.getStylesheets().add("/styles/Style-Default.css");
+        trans.getStyleClass().clear();
+        trans.getStyleClass().add("jfx-button");
         JFXButton cancel = new JFXButton("Cancel");
         cancel.setCancelButton(true);
         cancel.setButtonType(JFXButton.ButtonType.RAISED);
-        cancel.setPrefSize(50, 25);
-        HBox hb = new HBox(10, trans,cancel);
+        cancel.setPrefSize(80, 40);
+        cancel.getStylesheets().clear();
+        cancel.getStylesheets().add("/styles/Style-Default.css");
+        cancel.getStyleClass().clear();
+        cancel.getStyleClass().add("jfx-button");
+        HBox hb = new HBox(20, trans,cancel);
         hb.setAlignment(Pos.CENTER);
         
         VBox vb = new VBox(25,queueSelection,servicesSelction,hb);
 //        vb.getStylesheets().clear();
 //        vb.getStylesheets().add("/styles/Style-Default.css");
-        vb.setPrefSize(200, 230);
+        vb.setPrefSize(250, 250);
         vb.setAlignment(Pos.CENTER);
         
         JFXDialogLayout lay = new JFXDialogLayout();
@@ -503,25 +511,25 @@ public class ControlView extends AnchorPane{
         });
         
         trans.setOnAction((t) -> {
-            if (queueSelection.getSelectionModel().getSelectedItem().toString() == null) {
-                        createAlert(AlertType.ERROR, "Error", "Cannot Transfer Ticket", "Please select a queue and service to transfer to");
-                    } else {
-                        try {
-                            List<QueueServices> service_list = d.listQueueServices();
-                            List<Service> queue_list = d.listServices();
-                            for (int i = 0; i < queue_list.size(); i++) {
-                                if (queueSelection.getSelectionModel().getSelectedItem().toString().equals(queue_list.get(i).getServiceName())) {
-                                    for (int j = 0; j < service_list.size(); j++) {
-                                        if (servicesSelction.getSelectionModel().getSelectedItem().toString().equals(service_list.get(j).getQueueServiceName())) {
-                                            al.setResult(new Pair<>(queue_list.get(i).getServiceName(), service_list.get(j).getQueueServiceName()));
-                                        }
-                                    }
+            if (!queueSelection.getSelectionModel().isEmpty()) {
+                try {
+                    List<QueueServices> service_list = d.listQueueServices();
+                    List<Service> queue_list = d.listServices();
+                    for (int i = 0; i < queue_list.size(); i++) {
+                        if (queueSelection.getSelectionModel().getSelectedItem().toString().equals(queue_list.get(i).getServiceName())) {
+                            for (int j = 0; j < service_list.size(); j++) {
+                                if (servicesSelction.getSelectionModel().getSelectedItem().toString().equals(service_list.get(j).getQueueServiceName())) {
+                                    al.setResult(new Pair<>(queue_list.get(i).getServiceName(), service_list.get(j).getQueueServiceName()));
                                 }
                             }
-                        } catch (Exception ex) {
-                            Logger.getLogger(FXMLController.class.getName()).log(Level.SEVERE, null, ex);
                         }
                     }
+                } catch (Exception ex) {
+                    Logger.getLogger(FXMLController.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            } else {
+                createAlert(AlertType.ERROR, "Error", "Cannot Transfer Ticket", "Please select a queue and service to transfer to");
+            }
         });
         
         al.setResultConverter((p) -> { 

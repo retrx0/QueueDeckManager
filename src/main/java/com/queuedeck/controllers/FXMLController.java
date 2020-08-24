@@ -60,8 +60,15 @@ import com.queuedeck.effects.FadeInDownTransition;
 import com.queuedeck.models.ControlView;
 import com.queuedeck.models.DAOInterface;
 import com.queuedeck.models.JPAClass;
+import com.queuedeck.models.JPASQLQueries;
+import com.queuedeck.models.SQLQueries;
 import com.queuedeck.models.Service;
 import com.queuedeck.models.Staff;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+import com.zaxxer.hikari.hibernate.HikariConnectionProvider;
+import com.zaxxer.hikari.pool.HikariPool;
+import com.zaxxer.hikari.pool.HikariProxyConnection;
 import java.io.IOException;
 import java.util.prefs.BackingStoreException;
 import javafx.geometry.Pos;
@@ -71,6 +78,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Modality;
+import javax.sql.DataSource;
 
 public class FXMLController implements Initializable {
 
@@ -79,6 +87,7 @@ public class FXMLController implements Initializable {
     static final String USERNAME_STRING = "root";
     static final String PASSWORD_STRING = "rotflmao0000";
     public static BasicConnectionPool pool = BasicConnectionPool.create(URL_STRING, USERNAME_STRING, PASSWORD_STRING);
+    public static HikariDataSource hdatasrc = startHikariPool();
     String tkt;
     private String staff_level;
     String local_date = LocalDate.now().toString();
@@ -132,6 +141,22 @@ public class FXMLController implements Initializable {
 //</editor-fold>
 
     //<editor-fold defaultstate="collapsed" desc="Action Methods">
+    
+    public static HikariDataSource startHikariPool(){
+        HikariConfig cfg = new HikariConfig();
+        cfg.setUsername(USERNAME_STRING);
+        cfg.setPassword(PASSWORD_STRING);
+        cfg.setJdbcUrl(URL_STRING);
+        cfg.setPoolName("hpool");
+        cfg.setMaximumPoolSize(30);
+        cfg.setAutoCommit(false);
+        cfg.addDataSourceProperty("cachePrepStmts", "true");
+        cfg.addDataSourceProperty("prepStmtCacheSize", "250");
+        cfg.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
+        HikariDataSource p = new HikariDataSource(cfg);
+        return p;
+    }
+    
     public ControlView getControlViewWithServiceName(String name){
         ControlView cv = null;
         for (int i = 0; i < paneList.size(); i++) {
@@ -140,6 +165,17 @@ public class FXMLController implements Initializable {
             }
         }
         return cv;
+    }
+    
+    public Service getCurrentWorkingService(){
+        Service ser = null;
+        for (int i = 0; i < servList.size(); i++) {
+            if (servList.get(i).getServiceName().equals(loginCombo.getSelectionModel().getSelectedItem())) {
+                ser = servList.get(i);
+                break;
+            }
+        }
+        return ser;
     }
     
     public void close() {
@@ -888,8 +924,9 @@ public class FXMLController implements Initializable {
     @Override
     public void initialize(URL Url, ResourceBundle rb) {
         DAOInterface dao = new JPAClass();
+        SQLQueries sql = new JPASQLQueries();
         changeServiceMenu.getItems().clear();
-        for(int i=0;i<servList.size();i++){
+        for (int i = 0; i < servList.size(); i++) {
             loginCombo.getItems().add(i, servList.get(i).getServiceName());
             MenuItem mi = new MenuItem(servList.get(i).getServiceName());
             changeServiceMenu.getItems().add(i, mi);
@@ -902,88 +939,90 @@ public class FXMLController implements Initializable {
         }
         menuBar.setVisible(false);
         showNode(cardsStackPane, loginNode);
-        
+
         Preferences prefs = Preferences.userNodeForPackage(getClass());
         staffNoTextField.setText(prefs.get("Staff No", ""));
 
         Platform.runLater(() -> {
-            containerPane.getScene().getWindow().setOnCloseRequest((t) -> {close();});
-                Task task = new Task() {
-                    @Override
-                    protected Object call() throws Exception {
-                        Connection con2 = pool.getConnection();
-                        while (true) {
-                            Platform.runLater(() -> {
-                                LocalTime localTime = LocalTime.parse(changeStringFormat(String.valueOf(LocalTime.now()).substring(0, 2)) + ":" + String.valueOf(LocalTime.now()).substring(3, 5) + ":" + "00");
-                                try {
-                                    Statement stmt = con2.createStatement();
-                                    servList = dao.listServices();
-                                    for(int i = 0; i < servList.size(); i++){
-                                        //Checking if service is locked
-                                        if(servList.get(i).getUnlockTime() != null){
-                                            LocalTime unlockTime = LocalTime.parse(servList.get(i).getUnlockTime());
-                                            System.out.println("unlockt");
-                                            if(unlockTime.equals(localTime)){
-                                                paneList.get(i).lock.setSelected(false);
-                                                paneList.get(i).lock.setText("Lock");
-                                                stmt.executeUpdate("update services set locked = '0', unlock_time = null where s_no = '" + servList.get(i).getServiceNo() + "'");
-                                                System.out.println("time unlock done");
-                                            }else{
-                                                paneList.get(i).lock.setSelected(true);
-                                                paneList.get(i).lock.setText("Unlock");
-                                            }
-                                        }
-                                        //Getting data updates
-                                        if (loginCombo.getSelectionModel().getSelectedItem() != null) {
-                                        if(loginCombo.getSelectionModel().getSelectedItem().equals(servList.get(i).getServiceName())){
-                                            ResultSet rs5 = con2.prepareStatement("select sum(case when time_called IS NULL and tag = '" + servList.get(i).getServiceNo() + "' then 1 else 0 end) as count_num from tickets where t_date='" + local_date + "'").executeQuery();
-                                            ResultSet rs5b = con2.prepareStatement("select sum(case when time_called IS NULL and trans_to = '" + servList.get(i).getServiceNo() + "' then 1 else 0 end) as count_num from transfer where t_date='" + local_date + "'").executeQuery();
-                                            int ppline = 0;
-                                            int pplineb = 0;
-                                            while (rs5.next() && rs5b.next()) {
-                                                ppline = rs5.getInt("count_num");
-                                                pplineb = rs5b.getInt("count_num");
-                                                if ("" + ppline == null) {
-                                                    ppline = 0;
-                                                    paneList.get(i).noInlineLabel.setText("" + ppline);
-                                                }else if ("" + pplineb == null) pplineb = 0;
-                                                 else if ("" + pplineb != null) ppline = (ppline + pplineb);
-                                                paneList.get(i).noInlineLabel.setText("" + ppline);
-                                                }
-                                            if(showNotifcationMenuItem.isSelected()){
-                                                int notifCount = ppline + pplineb;
-                                                if (notifCount > 0) flag1 = true;
-                                                if (notifCount == 0 && flag1) flag2 = true;
-                                                if (flag1 && flag2 && notifCount > 0) {
-                                                    createAlertWhenThereIsATkt();
-                                                    flag1 = false;
-                                                    flag2 = false;
-                                                }
-                                            }
-                                                ResultSet rst2 = con2.prepareStatement("select sum(case when time_called IS NULL and trans_to = '" + servList.get(i).getServiceNo() + "' then 1 else 0 end) as count_num_trans from transfer where t_date='" + local_date + "'").executeQuery();
-                                                while (rst2.next()) {
-                                                    String noTrans = rst2.getString("count_num_trans");
-                                                    paneList.get(i).transferCounterLabel.setText(noTrans);
-                                                }
-                                                break;
-                                            }
+            containerPane.getScene().getWindow().setOnCloseRequest((t) -> {
+                close();
+            });
+            Task task = new Task() {
+                @Override
+                protected Object call() throws Exception {
+                    Connection con2 = pool.getConnection();
+                    while (true) {
+                        Platform.runLater(() -> {
+                            LocalTime localTime = LocalTime.parse(changeStringFormat(String.valueOf(LocalTime.now()).substring(0, 2)) + ":" + String.valueOf(LocalTime.now()).substring(3, 5) + ":" + "00");
+                            try {
+                                Statement stmt = con2.createStatement();
+                                servList = dao.listServices();
+                                if (loginCombo.getSelectionModel().getSelectedItem() != null) {
+                                    Service selectedService = getCurrentWorkingService();
+                                    ControlView selectedControlView  =getControlViewWithServiceName(selectedService.getServiceName());
+                                    //Checking if service is locked
+                                    if (selectedService.getUnlockTime() != null) {
+                                        LocalTime unlockTime = LocalTime.parse(selectedService.getUnlockTime());
+                                        System.out.println("unlock");
+                                        if (unlockTime.equals(localTime)) {
+                                            selectedControlView.lock.setSelected(false);
+                                            selectedControlView.lock.setText("Lock");
+                                            stmt.executeUpdate("update services set locked = '0', unlock_time = null where s_no = '" + selectedService.getServiceNo() + "'");
+                                            System.out.println("time unlock done");
+                                        } else {
+                                            selectedControlView.lock.setSelected(true);
+                                            selectedControlView.lock.setText("Unlock");
                                         }
                                     }
-                                }catch (SQLException ex) {System.out.println(ex);}
-                            });
-                            try {
-                                Thread.sleep(1000);
-                            } catch (InterruptedException ex) {
-                                Logger.getLogger(FXMLController.class.getName()).log(Level.SEVERE, null, ex);
+                                    //Getting data updates
+                                    if (loginCombo.getSelectionModel().getSelectedItem().equals(selectedService.getServiceName())) {
+                                        int ppline = sql.getNumberInline(selectedService);
+                                        int ppTransfer = sql.getNumberTransfered(selectedService);
+                                            if ("" + ppline == null) {
+                                                ppline = 0;
+                                                selectedControlView.noInlineLabel.setText("" + ppline);
+                                            } else if ("" + ppTransfer == null) {
+                                                ppTransfer = 0;
+                                            } else if ("" + ppTransfer != null) {
+                                                ppline = (ppline + ppTransfer);
+                                            }
+                                            selectedControlView.noInlineLabel.setText("" + ppline);
+                                       // Showing Notification when new ticket is added
+                                        if (showNotifcationMenuItem.isSelected()) {
+                                            int notifCount = ppline + ppTransfer;
+                                            if (notifCount > 0) {
+                                                flag1 = true;
+                                            }
+                                            if (notifCount == 0 && flag1) {
+                                                flag2 = true;
+                                            }
+                                            if (flag1 && flag2 && notifCount > 0) {
+                                                createAlertWhenThereIsATkt();
+                                                flag1 = false;
+                                                flag2 = false;
+                                            }
+                                        }
+                                        //Set no transfered label
+                                        selectedControlView.transferCounterLabel.setText(ppTransfer+"");
+                                     }
+                                }
+                            } catch (SQLException ex) {
+                                System.out.println(ex);
                             }
+                        });
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException ex) {
+                            Logger.getLogger(FXMLController.class.getName()).log(Level.SEVERE, null, ex);
                         }
-                        //pool.releaseConnection(con2);
-                        //return null;
                     }
-                };
-                Thread t = new Thread(task);
-                t.setDaemon(true);
-                t.start();
+                    //pool.releaseConnection(con2);
+                    //return null;
+                }
+            };
+            Thread t = new Thread(task);
+            t.setDaemon(true);
+            t.start();
 
         });
     }

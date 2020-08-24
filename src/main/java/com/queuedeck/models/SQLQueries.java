@@ -15,5 +15,6 @@ public interface SQLQueries {
     
     public void lockTicket(String staffNo, String tag);
     public void addTimeDone(String staffNo, String tag,ListView allListVIew);
-    
+    public int getNumberInline(Service sno);
+    public int getNumberTransfered(Service no);
 }
