@@ -140,13 +140,14 @@ public class ControlView extends AnchorPane{
         ticketIcon.setLayoutX(390);
         ticketIcon.setLayoutY(70);
         ticketIcon.relocate(415, 55);
+        ticketIcon.setId("ticket-icon");
         
         currentlySerVingLabel.setAlignment(Pos.CENTER);
         currentlySerVingLabel.relocate(415, 60);
         currentlySerVingLabel.setPrefSize(180, 140);
         currentlySerVingLabel.setTextAlignment(TextAlignment.CENTER);
         currentlySerVingLabel.setFont(Font.font(50));
-        currentlySerVingLabel.setId("tlable");
+        currentlySerVingLabel.setId("cslabel");
         
         serviceName.setTextAlignment(TextAlignment.CENTER);
         serviceName.setAlignment(Pos.CENTER);
@@ -177,10 +178,6 @@ public class ControlView extends AnchorPane{
         autoCb.relocate(430, 360);
         autoCb.setTextFill(Paint.valueOf("white"));
         autoCb.setSelected(true);
-        //HBox hb1 = new HBox(30, noInlineLabel,r,serviceName,autoCB);
-        
-//        HBox shb1 = new HBox(40, missedLabel,allLabel,transLabel);
-//        shb1.setAlignment(Pos.CENTER);
         
         VBox svb1 = new VBox(10,missedLabel,missedIcon,missedCounterLabel);
         VBox svb2 = new VBox(10,lv);
@@ -192,7 +189,6 @@ public class ControlView extends AnchorPane{
         r3.setPrefWidth(20);
         HBox hb2 = new HBox(20, r3,svb1,svb2,svb3);
         hb2.setPadding(new Insets(0, 0, 0, 40));
-        //hb2.setBackground(new Background(new BackgroundFill(Paint.valueOf("blue"), CornerRadii.EMPTY, Insets.EMPTY)));
         
         Region r2= new Region();
         r2.setPrefSize(50, 50);
@@ -200,12 +196,9 @@ public class ControlView extends AnchorPane{
         HBox hb4 = new HBox(15, callMissed,callAgain,callTrans,lock);
         VBox vb1 = new VBox(15, hb3,hb4);
         vb1.setPadding(new Insets(20, 0, 0,0));
-        //HBox hb5 = new HBox(30, loggedInUser, servingCounterLabel);
         
         VBox layoutVBox = new VBox(15,hb2,vb1);
         
-        //hb1.setAlignment(Pos.CENTER);
-        //hb2.setAlignment(Pos.CENTER_LEFT);
         hb3.setAlignment(Pos.CENTER);
         hb4.setAlignment(Pos.CENTER);
         vb1.setAlignment(Pos.CENTER);
@@ -220,7 +213,6 @@ public class ControlView extends AnchorPane{
         this.getStyleClass().add("control-view-pane");
         
         //OnActions
-        
         done.setOnAction((t) -> {
             doneButtonPerformAction(lv, this.service.getServiceNo());
         });
@@ -429,7 +421,6 @@ public class ControlView extends AnchorPane{
     }
     
     Optional<Pair<String, String>> transferChoiseDialogWithServices() {
-        
         Label h  = new Label("Transfer Ticket");
         h.setStyle("-fx-text-fill: #2E315B");
         
@@ -479,6 +470,8 @@ public class ControlView extends AnchorPane{
         trans.getStylesheets().add("/styles/Style-Default.css");
         trans.getStyleClass().clear();
         trans.getStyleClass().add("jfx-button");
+        trans.setTextAlignment(TextAlignment.CENTER);
+        
         JFXButton cancel = new JFXButton("Cancel");
         cancel.setCancelButton(true);
         cancel.setButtonType(JFXButton.ButtonType.RAISED);
@@ -487,20 +480,18 @@ public class ControlView extends AnchorPane{
         cancel.getStylesheets().add("/styles/Style-Default.css");
         cancel.getStyleClass().clear();
         cancel.getStyleClass().add("jfx-button");
+        cancel.setTextAlignment(TextAlignment.CENTER);
+        
         HBox hb = new HBox(20, trans,cancel);
         hb.setAlignment(Pos.CENTER);
         
         VBox vb = new VBox(25,queueSelection,servicesSelction,hb);
-//        vb.getStylesheets().clear();
-//        vb.getStylesheets().add("/styles/Style-Default.css");
         vb.setPrefSize(250, 250);
         vb.setAlignment(Pos.CENTER);
         
         JFXDialogLayout lay = new JFXDialogLayout();
         lay.setHeading(h);
         lay.setBody(vb);
-//        lay.getStylesheets().clear();
-//        lay.getStylesheets().add("/styles/Style-Default.css");
         
         JFXAlert<Pair<String,String>> al = new JFXAlert<>();
         al.setContent(vb);

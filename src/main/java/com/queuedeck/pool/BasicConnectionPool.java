@@ -5,6 +5,8 @@
  */
 package com.queuedeck.pool;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import java.util.ArrayList;
 import java.util.List;
 import java.sql.Connection;
@@ -51,9 +53,25 @@ public class BasicConnectionPool implements ConnectionPool{
         this.password = password;
         this.connectionPool = connectionPool;
     }
-     
+    
+    public static HikariDataSource hikariTest(String url,String user,String password){
+        HikariConfig jdbcConfig = new HikariConfig();
+        jdbcConfig.setPoolName("hpool");
+        jdbcConfig.setMaximumPoolSize(30);
+        jdbcConfig.setMinimumIdle(2);
+        jdbcConfig.setJdbcUrl(url);
+        jdbcConfig.setUsername(user);
+        jdbcConfig.setPassword(password);
+        jdbcConfig.addDataSourceProperty("cachePrepStmts", "true");
+        jdbcConfig.addDataSourceProperty("prepStmtCacheSize", "256");
+        jdbcConfig.addDataSourceProperty("prepStmtCacheSqlLimit","2048" );
+        jdbcConfig.addDataSourceProperty("useServerPrepStmts", "true");
+        return new HikariDataSource(jdbcConfig);
+    }
+    
     public static Connection createConnection(String url, String user, String password) throws SQLException{
-            return DriverManager.getConnection(url, user, password);
+//            return HikariCPDataSource.getConnection();
+            return DriverManager.getConnection(url,user,password);
     }
     
     public int getSize() {

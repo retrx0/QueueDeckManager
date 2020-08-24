@@ -88,7 +88,7 @@
                   <MenuItem mnemonicParsing="false" onAction="#changeCounterActionPerformed" text="Change Counter" />
                   <MenuItem mnemonicParsing="false" onAction="#changePasswordActionPerformed" text="Change Password" />
                   <MenuItem mnemonicParsing="false" onAction="#statsButtonPressed" text="Stats" />
-                  <CheckMenuItem fx:id="showNotifcationMenuItem" mnemonicParsing="false" selected="true" text="Show notofication" />
+                  <CheckMenuItem fx:id="showNotifcationMenuItem" mnemonicParsing="false" selected="false" text="Show notofication" />
                   <MenuItem mnemonicParsing="false" onAction="#logoutMenuActionPerformed" text="Logout" />
                </items>
             </Menu>

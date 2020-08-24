@@ -4,10 +4,14 @@
     -fx-font-size: 25px;
     -fx-text-fill: white;
 }
-#tlable{
+#cslabel{
     -fx-font-size: 80px;
     -fx-text-fill: #253365;
     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 3,0.2,0,0);
+}
+
+#ticket-icon{
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.034), 20, 0.4, 0,10);
 }
 
 .control-view-pane{

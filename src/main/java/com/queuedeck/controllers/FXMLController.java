@@ -64,12 +64,10 @@ import com.queuedeck.models.JPASQLQueries;
 import com.queuedeck.models.SQLQueries;
 import com.queuedeck.models.Service;
 import com.queuedeck.models.Staff;
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
-import com.zaxxer.hikari.hibernate.HikariConnectionProvider;
-import com.zaxxer.hikari.pool.HikariPool;
-import com.zaxxer.hikari.pool.HikariProxyConnection;
 import java.io.IOException;
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.prefs.BackingStoreException;
 import javafx.geometry.Pos;
 import javafx.scene.control.CheckMenuItem;
@@ -78,16 +76,14 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Modality;
-import javax.sql.DataSource;
 
 public class FXMLController implements Initializable {
 
     //<editor-fold defaultstate="collapsed" desc="Global Variables">
-    static final String URL_STRING = "jdbc:mysql://104.155.33.7:3306/ticketing";
-    static final String USERNAME_STRING = "root";
-    static final String PASSWORD_STRING = "rotflmao0000";
+    public static final String URL_STRING = "jdbc:mysql://104.155.33.7:3306/ticketing";
+    public static final String USERNAME_STRING = "root";
+    public static final String PASSWORD_STRING = "rotflmao0000";
     public static BasicConnectionPool pool = BasicConnectionPool.create(URL_STRING, USERNAME_STRING, PASSWORD_STRING);
-    public static HikariDataSource hdatasrc = startHikariPool();
     String tkt;
     private String staff_level;
     String local_date = LocalDate.now().toString();
@@ -142,21 +138,6 @@ public class FXMLController implements Initializable {
 
     //<editor-fold defaultstate="collapsed" desc="Action Methods">
     
-    public static HikariDataSource startHikariPool(){
-        HikariConfig cfg = new HikariConfig();
-        cfg.setUsername(USERNAME_STRING);
-        cfg.setPassword(PASSWORD_STRING);
-        cfg.setJdbcUrl(URL_STRING);
-        cfg.setPoolName("hpool");
-        cfg.setMaximumPoolSize(30);
-        cfg.setAutoCommit(false);
-        cfg.addDataSourceProperty("cachePrepStmts", "true");
-        cfg.addDataSourceProperty("prepStmtCacheSize", "250");
-        cfg.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
-        HikariDataSource p = new HikariDataSource(cfg);
-        return p;
-    }
-    
     public ControlView getControlViewWithServiceName(String name){
         ControlView cv = null;
         for (int i = 0; i < paneList.size(); i++) {
@@ -192,8 +173,6 @@ public class FXMLController implements Initializable {
                 Connection con = pool.getConnection();
                 Statement stmt = con.createStatement();
                 stmt.executeUpdate("update staff set online = '0' where staff_no = '" + staffNoTextField.getText() + "'");
-                System.out.println(staffNoTextField.getText());
-                System.out.println("done");
                 pool.releaseConnection(con);
             } catch (SQLException e) {
                 e.printStackTrace();
@@ -297,6 +276,22 @@ public class FXMLController implements Initializable {
     public void callTicketToDisplay(String tToC) {
         System.out.println(tkt+" goto counter "+loggedInStaff.getCounter());
     }
+    
+    public  String getMd5(String input){ 
+        try {
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            byte[] messageDigest = md.digest(input.getBytes()); 
+            BigInteger no = new BigInteger(1, messageDigest); 
+            String hashtext = no.toString(16); 
+            while (hashtext.length() < 32) { 
+                hashtext = "0" + hashtext; 
+            } 
+            return hashtext; 
+        }  
+        catch (NoSuchAlgorithmException e) { 
+            throw new RuntimeException(e); 
+        } 
+    } 
 
     public void loginActionToPerform() {
         try {
@@ -312,17 +307,8 @@ public class FXMLController implements Initializable {
                         shake(loginActionLabel);
                         loginActionLabel.setText("Incorrect Staff No or Password");
                     } else {
-//                        PreparedStatement get_pswd = con.prepareStatement("select password, count(*), online, staff_name, counter, staff_level from staff where staff_no = '" + staffNoTextField.getText() + "'");
-//                        PreparedStatement get_tags = con.prepareStatement("select s_no, service from services");
-//                        ResultSet gp = get_pswd.executeQuery();
-//                        
-//                        ResultSet gt = get_tags.executeQuery();
-//                        StaffLevel sl = new StaffLevel();
                         
-                        String passwordTextFieldinmd5 = null;
-                        ResultSet cp = con.prepareStatement("select md5('" + passwordTextField.getText() + "') as password").executeQuery();
-                        while(cp.next()){ passwordTextFieldinmd5 = cp.getString("password");}
-                        
+                        String passwordTextFieldinmd5 = getMd5(passwordTextField.getText());
                         for(int i=0;i<staffList.size();i++){
                             if(staffList.get(i).getStaffNo().equals(staffNoTextField.getText())){
                                 staff_level = ""+staffList.get(i).getStaffLevel();
@@ -350,7 +336,7 @@ public class FXMLController implements Initializable {
                                             item = changeServiceMenu.getItems().get(m);
                                     }
                                     for (int j = 0; j < l.size(); j++) {
-                                        if(loginCombo.getSelectionModel().getSelectedItem() != null){
+                                        if(!loginCombo.getSelectionModel().isEmpty()){
                                             if(loginCombo.getSelectionModel().getSelectedItem().equals(l.get(j))){
                                                 doFadeinDown(cardsStackPane, menuBar);
                                                 doFadeIn(cardsStackPane, d.getControlView(paneList, loginCombo.getSelectionModel().getSelectedItem()));
@@ -366,19 +352,15 @@ public class FXMLController implements Initializable {
                                                 }
                                                 loggedInAsLabel.setText("[" + staffNoTextField.getText() + "] " + loggedInStaff.getStaffName() + "");
                                                 counterLabel.setText("serving counter: " + loggedInStaff.getCounter() + "");
-                                                showMissedTickets(getControlViewWithServiceName(d.listServices().get(j).getServiceName()).missedCounterLabel, servList.get(j).getServiceNo());//attention
-//                                                showMissedTickets(currentCusMissedNoLabel, currentCusTag);
-//                                                showMissedTickets(newCusMissedNoLabel, newCusTag);
-//                                                showMissedTickets(servicesMissedNoLabel, serviceTag);
-//                                                showMissedTickets(otherMissedNoLabel, othersTag);
+                                                showMissedTickets(getControlViewWithServiceName(servList.get(j).getServiceName()).missedCounterLabel, servList.get(j).getServiceNo());//attention
                                             }else{
                                                 shake(loginCombo);
                                                 shake(loginActionLabel);
                                                 loginActionLabel.setText("Please Select An Appropriate Service");
                                             }
                                         }
+                                    }
                                 }
-                            }
                                 else{
                                     shake(staffNoTextField);
                                     shake(passwordTextField);
@@ -926,6 +908,7 @@ public class FXMLController implements Initializable {
         DAOInterface dao = new JPAClass();
         SQLQueries sql = new JPASQLQueries();
         changeServiceMenu.getItems().clear();
+        
         for (int i = 0; i < servList.size(); i++) {
             loginCombo.getItems().add(i, servList.get(i).getServiceName());
             MenuItem mi = new MenuItem(servList.get(i).getServiceName());
@@ -957,7 +940,7 @@ public class FXMLController implements Initializable {
                             try {
                                 Statement stmt = con2.createStatement();
                                 servList = dao.listServices();
-                                if (loginCombo.getSelectionModel().getSelectedItem() != null) {
+                                if (!loginCombo.getSelectionModel().isEmpty()) {
                                     Service selectedService = getCurrentWorkingService();
                                     ControlView selectedControlView  =getControlViewWithServiceName(selectedService.getServiceName());
                                     //Checking if service is locked
@@ -976,8 +959,9 @@ public class FXMLController implements Initializable {
                                     }
                                     //Getting data updates
                                     if (loginCombo.getSelectionModel().getSelectedItem().equals(selectedService.getServiceName())) {
-                                        int ppline = sql.getNumberInline(selectedService);
-                                        int ppTransfer = sql.getNumberTransfered(selectedService);
+                                        int[] arr = sql.getNumberInline(selectedService);
+                                        int ppline = arr[0];
+                                        int ppTransfer = arr[1];
                                             if ("" + ppline == null) {
                                                 ppline = 0;
                                                 selectedControlView.noInlineLabel.setText("" + ppline);
@@ -990,12 +974,8 @@ public class FXMLController implements Initializable {
                                        // Showing Notification when new ticket is added
                                         if (showNotifcationMenuItem.isSelected()) {
                                             int notifCount = ppline + ppTransfer;
-                                            if (notifCount > 0) {
-                                                flag1 = true;
-                                            }
-                                            if (notifCount == 0 && flag1) {
-                                                flag2 = true;
-                                            }
+                                            if (notifCount > 0) {flag1 = true;}
+                                            if (notifCount == 0 && flag1) {flag2 = true;}
                                             if (flag1 && flag2 && notifCount > 0) {
                                                 createAlertWhenThereIsATkt();
                                                 flag1 = false;
@@ -1006,24 +986,20 @@ public class FXMLController implements Initializable {
                                         selectedControlView.transferCounterLabel.setText(ppTransfer+"");
                                      }
                                 }
-                            } catch (SQLException ex) {
-                                System.out.println(ex);
-                            }
+                            } catch (SQLException ex) {System.out.println(ex);}
                         });
                         try {
-                            Thread.sleep(1000);
+                            Thread.sleep(1500);
                         } catch (InterruptedException ex) {
                             Logger.getLogger(FXMLController.class.getName()).log(Level.SEVERE, null, ex);
                         }
                     }
                     //pool.releaseConnection(con2);
-                    //return null;
                 }
             };
             Thread t = new Thread(task);
             t.setDaemon(true);
             t.start();
-
         });
     }
 }
