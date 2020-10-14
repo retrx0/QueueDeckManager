@@ -5,3 +5,13 @@ Queue Deck - Manager Application</h1>
 Queing management software used mostly in banks, hospitals and schools.
 
 Software that handles the customers on queue used by employees.
+
+### Platform
+* [Javafx](https://openjfx.io/)
+
+### Libraries
+* [JFoenix](https://github.com/jfoenixadmin/JFoenix) 
+
+### Useful Links
+* [Fxects.com](https://fxects.000webhostapp.com) - Created by me :)
+* [material.io](https://material.io)
