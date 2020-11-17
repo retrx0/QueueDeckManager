@@ -9,11 +9,7 @@ import com.jfoenix.controls.JFXDialogLayout;
 import com.jfoenix.controls.JFXPasswordField;
 import com.jfoenix.controls.JFXTextField;
 import java.net.URL;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -295,8 +291,18 @@ public class FXMLController implements Initializable {
 
     public void loginActionToPerform() {
         try {
+            //get OS
+            String os = System.getProperty("os.name");
+            Process process = null;
+            switch (os){
+                case "Mac OS X":
+                case "Ubuntu":
+                    process = java.lang.Runtime.getRuntime().exec("ping www.google.com -c 1");
+                    break;
+                default:
+                    process = java.lang.Runtime.getRuntime().exec("ping www.google.com -n 1");
+            }
             //Testing Internet connection
-            Process process = java.lang.Runtime.getRuntime().exec("ping www.google.com -n 1");
             int x = process.waitFor();
             if (x != 0) {
                 createAlert(AlertType.ERROR, "No internet connection", "No internet connection was detected, internet connection is required to login", "No internet connection detected");

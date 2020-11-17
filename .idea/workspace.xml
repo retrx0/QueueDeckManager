@@ -1,36 +1,46 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="BranchesTreeState">
+    <expand>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="LOCAL_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="GROUP_NODE:origin" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+    </expand>
+    <select />
+  </component>
   <component name="ChangeListManager">
-    <list default="true" id="4a481534-7a40-427e-b349-5055d83756c4" name="Default Changelist" comment="" />
-    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
+    <list default="true" id="4a481534-7a40-427e-b349-5055d83756c4" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/jarRepositories.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_openjfx_javafx_graphics_mac_15_ea_2.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_openjfx_javafx_media_mac_13_0_2.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/lib.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/encodings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Maven__com_google_protobuf_protobuf_java_3_6_1.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_google_protobuf_protobuf_java_3_6_1.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Maven__org_openjfx_javafx_base_win_15_ea_2.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_openjfx_javafx_base_mac_15_ea_2.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Maven__org_openjfx_javafx_controls_win_11.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_openjfx_javafx_controls_mac_11.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Maven__org_openjfx_javafx_fxml_win_11.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_openjfx_javafx_fxml_mac_11.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/QDeckManager.iml" beforeDir="false" afterPath="$PROJECT_DIR$/QDeckManager.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/queuedeck/controllers/FXMLController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/queuedeck/controllers/FXMLController.java" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
-  </component>
-  <component name="DatabaseView">
-    <option name="SHOW_INTERMEDIATE" value="true" />
-    <option name="GROUP_DATA_SOURCES" value="true" />
-    <option name="GROUP_SCHEMA" value="true" />
-    <option name="GROUP_CONTENTS" value="false" />
-    <option name="SORT_POSITIONED" value="false" />
-    <option name="SHOW_EMPTY_GROUPS" value="false" />
-    <option name="AUTO_SCROLL_FROM_SOURCE" value="false" />
-    <option name="HIDDEN_KINDS">
-      <set />
-    </option>
-    <expand>
-      <path>
-        <item name="Database" type="3277223f:DatabaseStructure$DbRootGroup" />
-        <item name="QD DB" type="feb32156:DbDataSourceImpl" />
-      </path>
-      <path>
-        <item name="Database" type="3277223f:DatabaseStructure$DbRootGroup" />
-        <item name="QD DB" type="feb32156:DbDataSourceImpl" />
-        <item name="ticketing: schema" type="76f4a085:MysqlImplModel$Schema" />
-      </path>
-    </expand>
-    <select />
   </component>
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
@@ -39,7 +49,15 @@
       </list>
     </option>
   </component>
+  <component name="Git.Pull.Settings">
+    <option name="BRANCH" value="dev" />
+  </component>
   <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="master" />
+      </map>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="JsFlowSettings">
@@ -48,30 +66,37 @@
     <other-services-enabled>true</other-services-enabled>
     <auto-save>true</auto-save>
   </component>
+  <component name="MavenImportPreferences">
+    <option name="generalSettings">
+      <MavenGeneralSettings>
+        <option name="mavenHome" value="$APPLICATION_HOME_DIR$/plugins/maven/lib/maven3" />
+      </MavenGeneralSettings>
+    </option>
+  </component>
   <component name="ProjectId" id="1gKtcnqraKOLSu3pK8UOuGjFifs" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
   <component name="PropertiesComponent">
     <property name="DatabaseDriversLRU" value="mysql" />
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="aspect.path.notification.shown" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
-    <property name="settings.editor.selected.configurable" value="preferences.pluginManager" />
-  </component>
-  <component name="RunDashboard">
-    <option name="ruleStates">
-      <list>
-        <RuleState>
-          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
-        </RuleState>
-        <RuleState>
-          <option name="name" value="StatusDashboardGroupingRule" />
-        </RuleState>
-      </list>
-    </option>
+    <property name="project.structure.last.edited" value="Problems" />
+    <property name="project.structure.proportion" value="0.15" />
+    <property name="project.structure.side.proportion" value="0.2" />
+    <property name="settings.editor.selected.configurable" value="preferences.JavaFX" />
   </component>
   <component name="RunManager">
     <configuration name="MainApp" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="ALTERNATIVE_JRE_PATH" value="15" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
       <option name="MAIN_CLASS_NAME" value="com.queuedeck.app.MainApp" />
       <module name="QDeckManager" />
+      <option name="VM_PARAMETERS" value="--module-path $USER_HOME$/javafx-sdk-15.0.1/lib --add-modules javafx.controls,javafx.fxml --add-exports javafx.graphics/com.sun.javafx.sg.prism=ALL-UNNAMED" />
       <extension name="coverage">
         <pattern>
           <option name="PATTERN" value="com.queuedeck.app.*" />
@@ -88,26 +113,7 @@
       </list>
     </recent_temporary>
   </component>
-  <component name="ServiceViewManager">
-    <option name="allServicesViewState">
-      <serviceView>
-        <treeState>
-          <expand>
-            <path>
-              <item name="services root" type="e789fda9:ObjectUtils$Sentinel" />
-              <item name="com.intellij.execution.services.ServiceModel$ServiceGroupNode@d4ff1ade" type="7427dc5b:ServiceModel$ServiceGroupNode" />
-            </path>
-            <path>
-              <item name="services root" type="e789fda9:ObjectUtils$Sentinel" />
-              <item name="com.intellij.execution.services.ServiceModel$ServiceGroupNode@d4ff1ade" type="7427dc5b:ServiceModel$ServiceGroupNode" />
-              <item name="com.intellij.execution.services.ServiceModel$ServiceNode@170de896" type="9fbbdea:ServiceModel$ServiceNode" />
-            </path>
-          </expand>
-          <select />
-        </treeState>
-      </serviceView>
-    </option>
-  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="SvnConfiguration">
     <configuration />
   </component>
@@ -119,11 +125,15 @@
       <option name="presentableId" value="Default" />
       <updated>1597875193643</updated>
       <workItem from="1597875200678" duration="3213000" />
+      <workItem from="1605211865127" duration="423000" />
+      <workItem from="1605387599075" duration="1768000" />
+      <workItem from="1605389938222" duration="69000" />
+      <workItem from="1605617606237" duration="3281000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
-    <option name="version" value="1" />
+    <option name="version" value="3" />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
     <option name="TAB_STATES">
@@ -135,5 +145,75 @@
         </entry>
       </map>
     </option>
+    <option name="oldMeFiltersMigrated" value="true" />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="208" y="23" width="1024" height="821" key="#Project_Structure" timestamp="1605212044403">
+      <screen x="0" y="23" width="1440" height="821" />
+    </state>
+    <state x="208" y="23" width="1024" height="821" key="#Project_Structure/0.23.1440.821@0.23.1440.821" timestamp="1605212044403" />
+    <state x="184" y="23" width="1071" height="813" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1605621450315">
+      <screen x="0" y="23" width="1440" height="813" />
+    </state>
+    <state x="184" y="23" width="1071" height="813" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.23.1440.813@0.23.1440.813" timestamp="1605621450315" />
+    <state x="184" y="95" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.23.1440.821@0.23.1440.821" timestamp="1605388843666" />
+    <state x="507" y="150" key="#com.intellij.ide.macro.MacrosDialog" timestamp="1605618795697">
+      <screen x="0" y="23" width="1440" height="813" />
+    </state>
+    <state x="507" y="150" key="#com.intellij.ide.macro.MacrosDialog/0.23.1440.813@0.23.1440.813" timestamp="1605618795697" />
+    <state width="1358" height="198" key="GridCell.Tab.0.bottom" timestamp="1605621402362">
+      <screen x="0" y="23" width="1440" height="813" />
+    </state>
+    <state width="1358" height="198" key="GridCell.Tab.0.bottom/0.23.1440.813@0.23.1440.813" timestamp="1605621402362" />
+    <state width="1358" height="198" key="GridCell.Tab.0.bottom/0.23.1440.815@0.23.1440.815" timestamp="1605619969500" />
+    <state width="1358" height="198" key="GridCell.Tab.0.bottom/0.23.1440.821@0.23.1440.821" timestamp="1605390008961" />
+    <state width="1358" height="198" key="GridCell.Tab.0.center" timestamp="1605621402361">
+      <screen x="0" y="23" width="1440" height="813" />
+    </state>
+    <state width="1358" height="198" key="GridCell.Tab.0.center/0.23.1440.813@0.23.1440.813" timestamp="1605621402361" />
+    <state width="1358" height="198" key="GridCell.Tab.0.center/0.23.1440.815@0.23.1440.815" timestamp="1605619969499" />
+    <state width="1358" height="198" key="GridCell.Tab.0.center/0.23.1440.821@0.23.1440.821" timestamp="1605390008960" />
+    <state width="1358" height="198" key="GridCell.Tab.0.left" timestamp="1605621402361">
+      <screen x="0" y="23" width="1440" height="813" />
+    </state>
+    <state width="1358" height="198" key="GridCell.Tab.0.left/0.23.1440.813@0.23.1440.813" timestamp="1605621402361" />
+    <state width="1358" height="198" key="GridCell.Tab.0.left/0.23.1440.815@0.23.1440.815" timestamp="1605619969498" />
+    <state width="1358" height="198" key="GridCell.Tab.0.left/0.23.1440.821@0.23.1440.821" timestamp="1605390008960" />
+    <state width="1358" height="198" key="GridCell.Tab.0.right" timestamp="1605621402362">
+      <screen x="0" y="23" width="1440" height="813" />
+    </state>
+    <state width="1358" height="198" key="GridCell.Tab.0.right/0.23.1440.813@0.23.1440.813" timestamp="1605621402362" />
+    <state width="1358" height="198" key="GridCell.Tab.0.right/0.23.1440.815@0.23.1440.815" timestamp="1605619969499" />
+    <state width="1358" height="198" key="GridCell.Tab.0.right/0.23.1440.821@0.23.1440.821" timestamp="1605390008961" />
+    <state width="1358" height="247" key="GridCell.Tab.1.bottom" timestamp="1605389728745">
+      <screen x="0" y="23" width="1440" height="821" />
+    </state>
+    <state width="1358" height="247" key="GridCell.Tab.1.bottom/0.23.1440.821@0.23.1440.821" timestamp="1605389728745" />
+    <state width="1358" height="247" key="GridCell.Tab.1.center" timestamp="1605389728744">
+      <screen x="0" y="23" width="1440" height="821" />
+    </state>
+    <state width="1358" height="247" key="GridCell.Tab.1.center/0.23.1440.821@0.23.1440.821" timestamp="1605389728744" />
+    <state width="1358" height="247" key="GridCell.Tab.1.left" timestamp="1605389728744">
+      <screen x="0" y="23" width="1440" height="821" />
+    </state>
+    <state width="1358" height="247" key="GridCell.Tab.1.left/0.23.1440.821@0.23.1440.821" timestamp="1605389728744" />
+    <state width="1358" height="247" key="GridCell.Tab.1.right" timestamp="1605389728745">
+      <screen x="0" y="23" width="1440" height="821" />
+    </state>
+    <state width="1358" height="247" key="GridCell.Tab.1.right/0.23.1440.821@0.23.1440.821" timestamp="1605389728745" />
+    <state x="208" y="23" width="1024" height="821" key="SettingsEditor" timestamp="1605618961566">
+      <screen x="0" y="23" width="1440" height="813" />
+    </state>
+    <state x="208" y="23" key="SettingsEditor/0.23.1440.813@0.23.1440.813" timestamp="1605618961566" />
+    <state x="208" y="23" width="1024" height="821" key="SettingsEditor/0.23.1440.821@0.23.1440.821" timestamp="1605389616413" />
+    <state x="88" y="56" key="new project wizard" timestamp="1605390005849">
+      <screen x="0" y="23" width="1440" height="821" />
+    </state>
+    <state x="88" y="56" key="new project wizard/0.23.1440.821@0.23.1440.821" timestamp="1605390005849" />
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/QDeckManager$MainApp.ic" NAME="MainApp Coverage Results" MODIFIED="1605212239820" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false">
+      <FILTER>com.queuedeck.app.*</FILTER>
+    </SUITE>
   </component>
 </project>
